@@ -17,7 +17,7 @@ $ python3 3-view-processing.py --i ./data/reuters-r8/r8-test.csv --numtopics 8 -
 
 ## Running the experiments
 
-Be aware of adding the data directory parameter in `line 716` of file NCF_clustering_fusion.py.
+Be aware of adding the data directory parameter in [`line 716`](https://github.com/jfzo/Multiview-clustering/blob/bd4ff54f4e7642b6ee62d4d3a3ca3a60a129e804/NCF_clustering_fusion.py#L716) of file NCF_clustering_fusion.py.
 ```
 $ python3 NCF_clustering_fusion.py
 ```
