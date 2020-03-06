@@ -406,7 +406,7 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
          "skipgram":"20Newsgroup?20ng_4groups_doc2vec.npz",
          "tfidf":"20Newsgroup?20ng-scikit-mat-tfidf.npz",
-         "labels":"20Newsgroup?20ng-scikit-labels.csv",
+         "labels":"20Newsgroup?20ng_4groups_labels.csv",
          "dataset":"20Newsgroup"},        
         {"lda":"bbcsport?fulltext?bbcsport-textdata-mat-lda.npz", 
          "skipgram":"bbcsport?fulltext?bbcsport-textdata-mat-skipgram.npz",
