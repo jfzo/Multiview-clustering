@@ -1,5 +1,12 @@
 # Multiview-clustering
 
+## Anaconda environment
+
+The file `environment.yml` contains the list of packages required to reproduce the experiments. To create the same environment, execute:
+```bash
+$ conda env create -f environment.yml
+```
+
 ## Creating the views for each dataset
 
 ```
