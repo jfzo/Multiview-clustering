@@ -882,7 +882,8 @@ def print_ave_entropy_results(pickle_results_file, nclusters_rng):
     tab_data = []
 
     header = ["k"]
-    views = list(ave_entropies[5])    
+	
+    views = list(ave_entropies[ave_entropies.keys()[0]])
     for view in views:
         header.append(view)
 
@@ -902,7 +903,7 @@ def print_ave_purity_results(pickle_results_file, nclusters_rng):
     tab_data = []
 
     header = ["k"]
-    views = list(ave_purities[5])    
+    views = list(ave_purities[ave_purities.keys()[0]])    
     for view in views:
         header.append(view)
 
@@ -919,7 +920,7 @@ def print_rel_entropy_results(pickle_results_file, nclusters_rng):
     rel_entropies = results_rel_entropy_per_dataset(pickle_results_file, nclusters_rng)
     tab_data = []
 
-    views = list(rel_entropies[5]['20Newsgroup'])
+    views = list(rel_entropies[rel_entropies.keys()[0]]['20Newsgroup'])
     for k in nclusters_rng:
         for ds in rel_entropies[k]:
             view_row = [k, ds]
@@ -934,7 +935,7 @@ def print_rel_purity_results(pickle_results_file, nclusters_rng):
     rel_purities = results_rel_purity_per_dataset(pickle_results_file, nclusters_rng)
     tab_data = []
 
-    views = list(rel_purities[5]['20Newsgroup'])
+    views = list(rel_purities[rel_purities.keys()[0]]['20Newsgroup'])
     for k in nclusters_rng:
         for ds in rel_purities[k]:
             view_row = [k, ds]
