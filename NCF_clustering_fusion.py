@@ -256,7 +256,7 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
 def ga_merge(i,j,Pi,K):
 
-    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j])
+    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j], popsize=50)
 
     return new_partitioning, {}
 
@@ -634,7 +634,7 @@ def Entropy(labels_pred, labels_true):
 
 
     
-def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
+def run_experimentation(clusters_rng, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
 
     datasets = [
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
@@ -662,7 +662,7 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
     np.random.seed(seed)
     NRUNS = 2
     entropy_log = dict()
-    for NCLUSTERS in [5,10]:#,15]:#,20]:
+    for NCLUSTERS in clusters_rng:
         logger.info("Experiments with {} clusters".format(NCLUSTERS))
         
         for ds in datasets:
@@ -777,11 +777,11 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
     
 # performance measures
 
-def __results_min_entropy_per_dataset(results):
+def __results_min_entropy_per_dataset(results, nclusters_rng):
 
     #results = pickle.load(open(pickle_results_file,'rb'))
     min_entropies = dict()
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         min_entropies[k] = dict()
         for ds in results:
             min_entropies[k][ds] = float('Inf')
@@ -792,10 +792,10 @@ def __results_min_entropy_per_dataset(results):
                     min_entropies[k][ds] = minent_k_ds_v
     return min_entropies
 
-def __results_max_purity_per_dataset(results):
+def __results_max_purity_per_dataset(results, nclusters_rng):
 
     max_purity = dict()
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         max_purity[k] = dict()
         for ds in results:
             max_purity[k][ds] = -float('Inf')
@@ -807,13 +807,13 @@ def __results_max_purity_per_dataset(results):
     return max_purity
 
 
-def results_rel_entropy_per_dataset(pickle_results_file):
+def results_rel_entropy_per_dataset(pickle_results_file, nclusters_rng):
 
     results = pickle.load(open(pickle_results_file,'rb'))
-    min_entropies = __results_min_entropy_per_dataset(results)
+    min_entropies = __results_min_entropy_per_dataset(results, nclusters_rng)
 
     rel_entropies = dict()
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         rel_entropies[k] = dict()
         for ds in results:
             rel_entropies[k][ds] = dict()
@@ -826,13 +826,13 @@ def results_rel_entropy_per_dataset(pickle_results_file):
     return rel_entropies
 
 
-def results_rel_purity_per_dataset(pickle_results_file):
+def results_rel_purity_per_dataset(pickle_results_file, nclusters_rng):
 
     results = pickle.load(open(pickle_results_file,'rb'))
-    max_purities = __results_max_purity_per_dataset(results)
+    max_purities = __results_max_purity_per_dataset(results, nclusters_rng)
 
     rel_purities = dict()
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         rel_purities[k] = dict()
         for ds in results:
             rel_purities[k][ds] = dict()
@@ -845,11 +845,11 @@ def results_rel_purity_per_dataset(pickle_results_file):
 
     return rel_purities
 
-def results_ave_entropy_per_dataset(pickle_results_file):
-    rel_entropies = results_rel_entropy_per_dataset(pickle_results_file)
+def results_ave_entropy_per_dataset(pickle_results_file, nclusters_rng):
+    rel_entropies = results_rel_entropy_per_dataset(pickle_results_file, nclusters_rng)
     ave_entropies = dict()
     #rel_entropies[k][ds]
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         n_datasets = len(rel_entropies[k])
         ave_entropies[k] = dict()
         for v in ['tfidf','lda','skipgram','proposal','fraj']:
@@ -860,11 +860,11 @@ def results_ave_entropy_per_dataset(pickle_results_file):
             ave_entropies[k][v] = sum_rel / n_datasets
     return ave_entropies
 
-def results_ave_purity_per_dataset(pickle_results_file):
-    rel_purities = results_rel_purity_per_dataset(pickle_results_file)
+def results_ave_purity_per_dataset(pickle_results_file, nclusters_rng):
+    rel_purities = results_rel_purity_per_dataset(pickle_results_file, nclusters_rng)
     ave_puritites = dict()
     #rel_entropies[k][ds]
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         n_datasets = len(rel_purities[k])
         ave_puritites[k] = dict()
         for v in ['tfidf','lda','skipgram','proposal', 'fraj']:
@@ -876,8 +876,8 @@ def results_ave_purity_per_dataset(pickle_results_file):
     return ave_puritites
 
 
-def print_ave_entropy_results(pickle_results_file):
-    ave_entropies = results_ave_entropy_per_dataset(pickle_results_file)
+def print_ave_entropy_results(pickle_results_file, nclusters_rng):
+    ave_entropies = results_ave_entropy_per_dataset(pickle_results_file, nclusters_rng)
     #print(tab(exp_results, headers=["dataset","view","f1","nmi","vscore"], floatfmt=".3f", tablefmt="latex") )#"fancy_grid") )
     tab_data = []
 
@@ -886,7 +886,7 @@ def print_ave_entropy_results(pickle_results_file):
     for view in views:
         header.append(view)
 
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         view_row = [k]
         for view in views:
             view_row.append(ave_entropies[k][view])
@@ -896,8 +896,8 @@ def print_ave_entropy_results(pickle_results_file):
 
 
 
-def print_ave_purity_results(pickle_results_file):
-    ave_purities = results_ave_purity_per_dataset(pickle_results_file)
+def print_ave_purity_results(pickle_results_file, nclusters_rng):
+    ave_purities = results_ave_purity_per_dataset(pickle_results_file, nclusters_rng)
     #print(tab(exp_results, headers=["dataset","view","f1","nmi","vscore"], floatfmt=".3f", tablefmt="latex") )#"fancy_grid") )
     tab_data = []
 
@@ -906,7 +906,7 @@ def print_ave_purity_results(pickle_results_file):
     for view in views:
         header.append(view)
 
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         view_row = [k]
         for view in views:
             view_row.append(ave_purities[k][view])
@@ -915,12 +915,12 @@ def print_ave_purity_results(pickle_results_file):
     return tab_data, header
 
 
-def print_rel_entropy_results(pickle_results_file):
-    rel_entropies = results_rel_entropy_per_dataset(pickle_results_file)
+def print_rel_entropy_results(pickle_results_file, nclusters_rng):
+    rel_entropies = results_rel_entropy_per_dataset(pickle_results_file, nclusters_rng)
     tab_data = []
 
     views = list(rel_entropies[5]['20Newsgroup'])
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         for ds in rel_entropies[k]:
             view_row = [k, ds]
             for view in views:
@@ -930,12 +930,12 @@ def print_rel_entropy_results(pickle_results_file):
     header.extend(views)
     return tab_data, header
 
-def print_rel_purity_results(pickle_results_file):
-    rel_purities = results_rel_purity_per_dataset(pickle_results_file)
+def print_rel_purity_results(pickle_results_file, nclusters_rng):
+    rel_purities = results_rel_purity_per_dataset(pickle_results_file, nclusters_rng)
     tab_data = []
 
     views = list(rel_purities[5]['20Newsgroup'])
-    for k in [5,10,15]:
+    for k in nclusters_rng:
         for ds in rel_purities[k]:
             view_row = [k, ds]
             for view in views:
@@ -951,11 +951,11 @@ if __name__== "__main__":
     logger = logging.getLogger('NCF clustering')
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('ga_ncf_run.log')
-    fh.setLevel(logging.DEBUG)
+    fh = logging.FileHandler('ga_ncf_run.log', mode='w')
+    fh.setLevel(logging.INFO)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
     # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
@@ -964,21 +964,22 @@ if __name__== "__main__":
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    run_experimentation(dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
+    NCLUSTERS_RNG = [10]
+    run_experimentation(NCLUSTERS_RNG, dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
     outputfmt = 'latex'
     
     logger.info("\nAverage Relative Entropy\n")
-    tdata, header = print_ave_entropy_results('entropy_log.p')
+    tdata, header = print_ave_entropy_results('entropy_log.p',NCLUSTERS_RNG)
     logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
 
     logger.info("\nRelative Entropy\n")
-    tdata, header = print_rel_entropy_results('entropy_log.p')
+    tdata, header = print_rel_entropy_results('entropy_log.p',NCLUSTERS_RNG)
     logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
     
     logger.info("\nAverage Relative Purity\n")
-    tdata, header = print_ave_purity_results('entropy_log.p')
+    tdata, header = print_ave_purity_results('entropy_log.p',NCLUSTERS_RNG)
     logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
 
     logger.info("\nRelative Purity\n")
-    tdata, header = print_rel_purity_results('entropy_log.p')
+    tdata, header = print_rel_purity_results('entropy_log.p',NCLUSTERS_RNG)
     logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
