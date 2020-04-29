@@ -16,9 +16,15 @@ from deap import creator
 from deap import tools
 import random
 
+from scoop import futures
+
 import logging
 
 import fraj_proposal as fraj
+
+
+
+
 
 
 def check_correlative_cluster_labels(S): 
@@ -184,13 +190,29 @@ def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
     
     return K_C_A + K_C_B + K_A_C + K_B_C,
 
+
+###########
+
+
+creator.create("Fitness", base.Fitness, weights=(-1.0,))
+creator.create("Individual", np.ndarray, fitness=creator.Fitness)
+
+tb1 = base.Toolbox()
+tb1.register("map", futures.map)
+tb1.register("mate", cxTwoPointCopy)
+tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
+tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+
+
+###############
+
+
+
+
 def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
 
-    creator.create("Fitness", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", np.ndarray, fitness=creator.Fitness)
 
-    #V1 = np.array([0,0,0,1,1,2,2,2,2,1], dtype=np.int)
     #K_V1 = np.unique(V1).shape[0]
     #V2 = np.array([0,0,1,0,0,1,1,2,2,2], dtype=np.int)
     #K_V2 = np.unique(V2).shape[0]
@@ -199,15 +221,14 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
     NPTS = V1.shape[0]
 
 
-    tb1 = base.Toolbox()
+    #tb1 = base.Toolbox()
     tb1.register("attr_item", random.randint, 0, NCLUSTERS) # each gene corresponds to a chr
     tb1.register("individual", tools.initRepeat, creator.Individual, tb1.attr_item, NPTS)
     tb1.register("population", tools.initRepeat, list, tb1.individual)
-
+    tb1.register("map", futures.map)
+    
     tb1.register("evaluate", evalMatching, A=V2, B=V1, K_A=K_V1, K_B=K_V2)
-    tb1.register("mate", cxTwoPointCopy)
-    tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
-    tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+
 
     # running the genetic algorithm
     random.seed(seed)
@@ -639,14 +660,14 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
     ]
     
     np.random.seed(seed)
-    
+    NRUNS = 2
     entropy_log = dict()
-    for NCLUSTERS in [5,10,15]:#,20]:
+    for NCLUSTERS in [5,10]:#,15]:#,20]:
         logger.info("Experiments with {} clusters".format(NCLUSTERS))
         
         for ds in datasets:
             run = 0
-            while run < 10:
+            while run < NRUNS:
                 random_state = np.random.randint(2**16 - 1)
                 logger.info("Starting run nr. {} with random state:{}.".format(run, random_state))
                 if ds["dataset"] not in entropy_log:
