@@ -10,6 +10,13 @@ import scipy.sparse
 import pickle
 from tabulate import tabulate as tab
 
+from deap import base
+from deap import creator
+from deap import tools
+import random
+
+import logging
+
 import fraj_proposal as fraj
 
 
@@ -122,6 +129,114 @@ def omega(pi_, p, A, epweights_A):
     # epweights_A must contain the tuple due to the former mark of p in A
     return agreement_measure(pi_, set(np.where(A == Phi_A_pi)[0])) * epweights_A[(p, Phi_A_pi)]
     
+########################### G.A ########################
+def cxTwoPointCopy(ind1, ind2):
+    """Execute a two points crossover with copy on the input individuals. The
+    copy is required because the slicing in numpy returns a view of the data,
+    which leads to a self overwritting in the swap operation. It prevents
+    ::
+    
+        >>> import numpy
+        >>> a = numpy.array((1,2,3,4))
+        >>> b = numpy.array((5,6,7,8))
+        >>> a[1:3], b[1:3] = b[1:3], a[1:3]
+        >>> print(a)
+        [1 6 7 4]
+        >>> print(b)
+        [5 6 7 8]
+    """
+    size = len(ind1)
+    cxpoint1 = random.randint(1, size)
+    cxpoint2 = random.randint(1, size - 1)
+    if cxpoint2 >= cxpoint1:
+        cxpoint2 += 1
+    else: # Swap the two cx points
+        cxpoint1, cxpoint2 = cxpoint2, cxpoint1
+
+    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
+        = ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
+        
+    return ind1, ind2
+
+def repairCorrelative(A):
+    current_ids = np.unique(A)
+    L = len(current_ids)
+    correct_ids = np.arange(L)
+    for i,j in zip(current_ids, correct_ids):
+        if i != j:
+            A[np.where(A == i)[0]] = j
+
+def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
+    """
+    Objective function for the G.A. strategy to merging partitions.
+    """
+    #K_A = np.unique(A).shape[0] #can be computed outside
+    #K_B = np.unique(B).shape[0] #can be computed outside
+    repairCorrelative(C)
+    K_C = np.unique(C).shape[0]
+
+    K_C_A = compute_solutions_complexity(C, A, K_C, K_A)[2]
+    K_C_B = compute_solutions_complexity(C, B, K_C, K_B)[2]
+    
+    K_A_C = compute_solutions_complexity(A, C, K_A, K_C)[2]
+    K_B_C = compute_solutions_complexity(B, C, K_B, K_C)[2]
+    
+    return K_C_A + K_C_B + K_A_C + K_B_C,
+
+def ga_find_best_merge(V1, V2, K_V1, K_V2 popsize=300, seed=1):
+
+
+    creator.create("Fitness", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", np.ndarray, fitness=creator.Fitness)
+
+    #V1 = np.array([0,0,0,1,1,2,2,2,2,1], dtype=np.int)
+    #K_V1 = np.unique(V1).shape[0]
+    #V2 = np.array([0,0,1,0,0,1,1,2,2,2], dtype=np.int)
+    #K_V2 = np.unique(V2).shape[0]
+
+    NCLUSTERS = np.max([K_V1, K_V2])
+    NPTS = V1.shape[0]
+
+
+    tb1 = base.Toolbox()
+    tb1.register("attr_item", random.randint, 0, NCLUSTERS) # each gene corresponds to a chr
+    tb1.register("individual", tools.initRepeat, creator.Individual, tb1.attr_item, NPTS)
+    tb1.register("population", tools.initRepeat, list, tb1.individual)
+
+    tb1.register("evaluate", evalMatching, A=V2, B=V1, K_A=K_V1, K_B=K_V2)
+    tb1.register("mate", cxTwoPointCopy)
+    tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
+    tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+
+    # running the genetic algorithm
+    random.seed(seed)
+    
+    pop = tb1.population(n=popsize)
+    
+    # Numpy equality function (operators.eq) between two arrays returns the
+    # equality element wise, which raises an exception in the if similar()
+    # check of the hall of fame. Using a different equality function like
+    # numpy.array_equal or numpy.allclose solve this issue.
+    hof = tools.HallOfFame(1, similar=np.array_equal)
+    
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
+    stats.register("avg", np.mean)
+    stats.register("std", np.std)
+    stats.register("min", np.min)
+    stats.register("max", np.max)
+    
+    algorithms.eaSimple(pop, tb1, cxpb=0.5, mutpb=0.2, ngen=40, stats=stats,
+                        halloffame=hof)
+
+    best_ind = np.array(tools.selBest(pop, 1)[0])
+
+    return best_ind, stats
+
+def ga_merge(i,j,Pi,K):
+
+    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j])
+
+    return new_partitioning, {}
 
 def merge(i,j,Pi,K, exception_weights, alpha=0.7):
     """
@@ -180,11 +295,11 @@ def merge(i,j,Pi,K, exception_weights, alpha=0.7):
 
         # when there are no common data points, the merge generates only exceptions.
         if len(c) == 0:
-            print("ERROR empty cluster when merging views i=%d j=%d: No common \
+            logger.error("ERROR empty cluster when merging views i=%d j=%d: No common \
 points between partition %d and %s"%(i,j,e,s))
-            print("|view %d partition %d| : %d" % (i,e,len(set_vie)))
+            logger.warning("|view %d partition %d| : %d" % (i,e,len(set_vie)))
             for pt in s:
-                print("|view %d partition %d| : %d(%d)" % (j,pt,len(cache[pt]),len(set(np.where(Pi[j] == pt)[0])) ) )
+                logger.warning("|view %d partition %d| : %d(%d)" % (j,pt,len(cache[pt]),len(set(np.where(Pi[j] == pt)[0])) ) )
             # maybe this issue shoud throw an exception since the result is no longer valid (Bad source clustering).
             assert len(c) > 0
             
@@ -214,23 +329,119 @@ points between partition %d and %s"%(i,j,e,s))
         
     return new_partitioning, marked_points_weights
 
+def ga_proposal(result):
+    """
+    Version that employes a GA optimization strategy for merging partitions
+    """
+    logger.debug("GA MERGE")
+    REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
+    # capital Pi: list of partitionings.
+    # A partitioning is a set of integers (data point id)
+    Pi = [x for name,x in result.items()]
+    m = len(Pi) # nr. of views
+    logger.debug("initial number of views:", m)
+    K = [np.unique(k).shape[0] for k in Pi]
 
-def new_proposal(result, MINVAL_MERGING=True, SOLVE_EXCEPTIONS = True, DEBUG=True):
+    ######
+    # Distance matrix computation
+    #
+    Aff = np.repeat(REFERENCE_VALUE, m**2).reshape(m, m)
+
+    for i in range(m-1):
+        for j in range(i+1,m):
+            _,_,val1 = compute_solutions_complexity(Pi[i], Pi[j], K[i], K[j])
+            _,_,val2 = compute_solutions_complexity(Pi[j], Pi[i], K[j], K[i])
+            #if(len(set(e1.keys()) & set(e2.keys())) != len(set(e1.keys()) | set(e2.keys())) ):
+            #    print("C1:%d C2:%d"%(i,j))
+            #else:
+            #    print("*C1:%d C2:%d"%(i,j))
+            Aff[i,j] = val1 + val2
+            Aff[j,i] = Aff[i,j]
+    #print(Aff)
+
+    processed_views = set() # stores the partitionings already merged so they are not re-used
+    #marked_pts = {} # dictionary with point ids (integer) as keys and list of tuples (cluster-id; weight)
+    #
+    # the following must be repeated until no more partitionings can be merged.
+    # It seems that the condition is that the min value of the distance matrix is Inf.
+    exception_weights = {} # dict with View_id as key and a dict ((point_id,cluster_id)->weight) as value.
+    n_its = 0
+    last_created_view = -1
+    while( not np.isinf(np.min(Aff)) ):
+        #print("merge views %d and %d"%(mindist_partitions, row_min_dist) )
+        # Picking current views having minimum complexity:
+        optimal_col_per_row = np.argmin(Aff, axis=1) # for each row, which column presents the lowest distance
+        optimal_val_per_row = np.min(Aff, axis=1)
+        optimal_row = np.argmin(optimal_val_per_row) # row whose min distance is the global min.
+        optimal_col = optimal_col_per_row[optimal_row] # combining the previous commands, obtain the least distant views to merge.
+
+        newclustering, exceptions = ga_merge(optimal_row, optimal_col, Pi, K)
+        #step_memberships.append(memberships_)
+        K.append(np.unique(newclustering[np.where(newclustering >= 0)[0]]).shape[0]) 
+        Pi.append(newclustering.copy())
+        newclustering_index = len(Pi)-1
+        last_created_view = newclustering_index
+
+        logger.debug("merge views %d and %d --> %d is created."%(optimal_row, optimal_col, newclustering_index) )
+
+        # TODO: add exceptions to the overall list
+        #for e,_ in exceptions:
+        #    if e not in marked_pts:
+        #        marked_pts[e] = []
+        #    marked_pts[e].append((newclustering_index, 1/merging_dist))
+
+        # set the rows/columns of merged partitions as processed!
+        processed_views.add(optimal_row)
+        processed_views.add(optimal_col)
+
+        # Update the distance matrix: Set the merged partitionings distances to infinity so they
+        # are not employed in posterior iterations ~ Removing these partitions from the set of candidates
+        Aff[optimal_col,:] = np.repeat(REFERENCE_VALUE, m)
+        Aff[:,optimal_col] = np.repeat(REFERENCE_VALUE, m)
+        Aff[optimal_row,:] = np.repeat(REFERENCE_VALUE, m)
+        Aff[:,optimal_row] = np.repeat(REFERENCE_VALUE, m)
+
+        # Include the new partitioning into the set of views:
+        #    * A row and column are added to represent the new clustering.
+        #    * Distances between this new partitioning and the valid ones are computed.
+        Aff = np.vstack(( 
+            np.hstack((
+                Aff, np.repeat(REFERENCE_VALUE, Aff.shape[0]).reshape(Aff.shape[0],1) )), 
+            np.repeat(REFERENCE_VALUE, Aff.shape[0]+1) ))
+
+        #print("1st partition:",np.unique(Pi[newclustering_index]))
+        # Update the Kolmogorov complexities
+        for j in range(len(Pi)):
+            if j in processed_views or j == newclustering_index:
+                continue
+            _,_,val1 = compute_solutions_complexity(Pi[newclustering_index], Pi[j], K[newclustering_index], K[j])
+            _,_,val2 = compute_solutions_complexity(Pi[j], Pi[newclustering_index], K[j], K[newclustering_index])
+
+            Aff[newclustering_index,j] = val1 + val2
+            Aff[j,newclustering_index] = Aff[newclustering_index,j]
+
+        #update the m value
+        m = len(Pi)
+
+        n_its += 1
+        if n_its > 50:
+            logger.warning("Nr. of max iterations reached. Halting!")
+            break
+   
+    return Pi[last_created_view]
+
+def new_proposal(result):
     """
     result: Partitionings as integer vectors. One vector for each view.
     """
-    if MINVAL_MERGING:
-        REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
-    else:
-        REFERENCE_VALUE = -float('Inf') # this value is used for maximum-distance merging
-
+    REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
+    
 
     # capital Pi: list of partitionings.
     # A partitioning is a set of integers (data point id)
     Pi = [x for name,x in result.items()]
     m = len(Pi) # nr. of views
-    if DEBUG:
-        print("initial number of views:", m)
+    logger.debug("initial number of views:", m)
     K = [np.unique(k).shape[0] for k in Pi]
 
     ######
@@ -284,8 +495,8 @@ def new_proposal(result, MINVAL_MERGING=True, SOLVE_EXCEPTIONS = True, DEBUG=Tru
         newclustering_index = len(Pi)-1
         last_created_view = newclustering_index
         exception_weights[newclustering_index] = exceptions
-        if DEBUG:
-            print("merge views %d and %d --> %d is created."%(optimal_row, optimal_col, newclustering_index) )
+        
+        logger.debug("merge views %d and %d --> %d is created."%(optimal_row, optimal_col, newclustering_index) )
 
         # TODO: add exceptions to the overall list
         #for e,_ in exceptions:
@@ -328,27 +539,27 @@ def new_proposal(result, MINVAL_MERGING=True, SOLVE_EXCEPTIONS = True, DEBUG=Tru
 
         n_its += 1
         if n_its > 50:
-            print("Nr. of max iterations reached. Halting!")
+            logger.error("Nr. of max iterations reached. Halting!")
             break
 
     # solving the exceptions
-    if DEBUG:
-        print("Solving the exceptions!")
-    if SOLVE_EXCEPTIONS:
-        max_weight_cluster = {}
-        # Since the exceptions are carried, only consider the last view weights
-        #print("Solving the exceptions...\n ##################################")
-        #print(exceptions[last_created_view],"\n ###############################")
-        for ((p_id,c_id), w) in exception_weights[last_created_view].items():
-            assert Pi[last_created_view][p_id] == -1 # len(Pi)-1 in line 285
-            
-            if not p_id in max_weight_cluster:
-                max_weight_cluster[p_id] = (c_id, w)
-            elif max_weight_cluster[p_id][1] < w:
-                max_weight_cluster[p_id] = (c_id, w)
-            
-        for (p_id, (c,_)) in  max_weight_cluster.items():
-            Pi[last_created_view][p_id] = c
+    
+    logger.debug("Solving the exceptions!")
+
+    max_weight_cluster = {}
+    # Since the exceptions are carried, only consider the last view weights
+    #print("Solving the exceptions...\n ##################################")
+    #print(exceptions[last_created_view],"\n ###############################")
+    for ((p_id,c_id), w) in exception_weights[last_created_view].items():
+        assert Pi[last_created_view][p_id] == -1 # len(Pi)-1 in line 285
+        
+        if not p_id in max_weight_cluster:
+            max_weight_cluster[p_id] = (c_id, w)
+        elif max_weight_cluster[p_id][1] < w:
+            max_weight_cluster[p_id] = (c_id, w)
+        
+    for (p_id, (c,_)) in  max_weight_cluster.items():
+        Pi[last_created_view][p_id] = c
     
     return Pi[last_created_view]
 
@@ -406,7 +617,7 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
          "skipgram":"20Newsgroup?20ng_4groups_doc2vec.npz",
          "tfidf":"20Newsgroup?20ng-scikit-mat-tfidf.npz",
-         "labels":"20Newsgroup?20ng_4groups_labels.csv",
+         "labels":"20Newsgroup?20ng-scikit-labels.csv",
          "dataset":"20Newsgroup"},        
         {"lda":"bbcsport?fulltext?bbcsport-textdata-mat-lda.npz", 
          "skipgram":"bbcsport?fulltext?bbcsport-textdata-mat-skipgram.npz",
@@ -429,13 +640,13 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
     
     entropy_log = dict()
     for NCLUSTERS in [5,10,15]:#,20]:
-        print("Experiments with %d clusters"%(NCLUSTERS))
+        logger.info("Experiments with %d clusters"%(NCLUSTERS))
         
         for ds in datasets:
             run = 0
             while run < 10:
                 random_state = np.random.randint(2**16 - 1)
-                print("Starting run nr. %d with random state:%d."%(run, random_state))
+                logger.info("Starting run nr. %d with random state:%d."%(run, random_state))
                 if ds["dataset"] not in entropy_log:
                     entropy_log[ds["dataset"]] = dict()
 		            
@@ -491,7 +702,8 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
 		        # execute proposal
 		        # catch exception and delete last scores from entropy and purity lists of each viewname record.
                 try:
-                    proposal_result = new_proposal(views, DEBUG=False)
+                    #proposal_result = new_proposal(views)
+                    proposal_result = ga_proposal(views)
 			        
                     entropy_ds_k = Entropy(proposal_result, labels)
                     purity_ds_k = Purity(proposal_result, labels)
@@ -508,7 +720,7 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
                     entropy_log[ds["dataset"]]["proposal"][NCLUSTERS]["entropy"].append(entropy_ds_k)
                     entropy_log[ds["dataset"]]["proposal"][NCLUSTERS]["purity"].append(purity_ds_k)
                 except AssertionError as e:
-                    print(e)
+                    logger.error(e)
                     for viewname in ["tfidf","lda","skipgram"]:
                         entropy_log[ds["dataset"]][viewname][NCLUSTERS]["entropy"].pop()
                         entropy_log[ds["dataset"]][viewname][NCLUSTERS]["purity"].pop()
@@ -606,7 +818,7 @@ def results_rel_purity_per_dataset(pickle_results_file):
                 # compute maximum for the view and the dataset and the nr of clusters
                 maxpur_k_ds_v = np.max(results[ds][view][k]['purity'])
                 rel_purities[k][ds][view] = max_purities[k][ds] / maxpur_k_ds_v
-                print('REL PURITY: %.4f / %.4f = %.4f' % (max_purities[k][ds], maxpur_k_ds_v, max_purities[k][ds] / maxpur_k_ds_v))
+                logger.info('REL PURITY: %.4f / %.4f = %.4f' % (max_purities[k][ds], maxpur_k_ds_v, max_purities[k][ds] / maxpur_k_ds_v))
 
     return rel_purities
 
@@ -713,21 +925,37 @@ def print_rel_purity_results(pickle_results_file):
 
 if __name__== "__main__":
 
+    logger = logging.getLogger('NCF clustering')
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler('ncf_run.log')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.ERROR)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+
     run_experimentation() # dataset_dir parameter targets the dir where datasets are located.
     outputfmt = 'latex'
     
-    print("\nAverage Relative Entropy\n")
+    logger.info("\nAverage Relative Entropy\n")
     tdata, header = print_ave_entropy_results('entropy_log.p')
-    print(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
 
-    print("\nRelative Entropy\n")
+    logger.info("\nRelative Entropy\n")
     tdata, header = print_rel_entropy_results('entropy_log.p')
-    print(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
     
-    print("\nAverage Relative Purity\n")
+    logger.info("\nAverage Relative Purity\n")
     tdata, header = print_ave_purity_results('entropy_log.p')
-    print(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
 
-    print("\nRelative Purity\n")
+    logger.info("\nRelative Purity\n")
     tdata, header = print_rel_purity_results('entropy_log.p')
-    print(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
