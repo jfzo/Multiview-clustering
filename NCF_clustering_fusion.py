@@ -10,6 +10,7 @@ import scipy.sparse
 import pickle
 from tabulate import tabulate as tab
 
+from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
@@ -183,7 +184,7 @@ def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
     
     return K_C_A + K_C_B + K_A_C + K_B_C,
 
-def ga_find_best_merge(V1, V2, K_V1, K_V2 popsize=300, seed=1):
+def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
 
     creator.create("Fitness", base.Fitness, weights=(-1.0,))
@@ -295,11 +296,11 @@ def merge(i,j,Pi,K, exception_weights, alpha=0.7):
 
         # when there are no common data points, the merge generates only exceptions.
         if len(c) == 0:
-            logger.error("ERROR empty cluster when merging views i=%d j=%d: No common \
-points between partition %d and %s"%(i,j,e,s))
-            logger.warning("|view %d partition %d| : %d" % (i,e,len(set_vie)))
+            logger.error("ERROR empty cluster when merging views i={} j={}: No common \
+points between partition {} and {}".format(i,j,e,s))
+            logger.warning("|view {} partition {}| : {}".format(i,e,len(set_vie)))
             for pt in s:
-                logger.warning("|view %d partition %d| : %d(%d)" % (j,pt,len(cache[pt]),len(set(np.where(Pi[j] == pt)[0])) ) )
+                logger.warning("|view {} partition {}| : {}({})".format(j,pt,len(cache[pt]),len(set(np.where(Pi[j] == pt)[0])) ) )
             # maybe this issue shoud throw an exception since the result is no longer valid (Bad source clustering).
             assert len(c) > 0
             
@@ -339,7 +340,7 @@ def ga_proposal(result):
     # A partitioning is a set of integers (data point id)
     Pi = [x for name,x in result.items()]
     m = len(Pi) # nr. of views
-    logger.debug("initial number of views:", m)
+    logger.debug("initial number of views: {}".format(m))
     K = [np.unique(k).shape[0] for k in Pi]
 
     ######
@@ -382,7 +383,7 @@ def ga_proposal(result):
         newclustering_index = len(Pi)-1
         last_created_view = newclustering_index
 
-        logger.debug("merge views %d and %d --> %d is created."%(optimal_row, optimal_col, newclustering_index) )
+        logger.debug("merge views {} and {} --> {} is created.".format(optimal_row, optimal_col, newclustering_index) )
 
         # TODO: add exceptions to the overall list
         #for e,_ in exceptions:
@@ -441,7 +442,7 @@ def new_proposal(result):
     # A partitioning is a set of integers (data point id)
     Pi = [x for name,x in result.items()]
     m = len(Pi) # nr. of views
-    logger.debug("initial number of views:", m)
+    logger.debug("initial number of views:".format(m) )
     K = [np.unique(k).shape[0] for k in Pi]
 
     ######
@@ -496,7 +497,7 @@ def new_proposal(result):
         last_created_view = newclustering_index
         exception_weights[newclustering_index] = exceptions
         
-        logger.debug("merge views %d and %d --> %d is created."%(optimal_row, optimal_col, newclustering_index) )
+        logger.debug("merge views {} and {} --> {} is created.".format(optimal_row, optimal_col, newclustering_index) )
 
         # TODO: add exceptions to the overall list
         #for e,_ in exceptions:
@@ -613,11 +614,12 @@ def Entropy(labels_pred, labels_true):
 
     
 def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
+
     datasets = [
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
          "skipgram":"20Newsgroup?20ng_4groups_doc2vec.npz",
          "tfidf":"20Newsgroup?20ng-scikit-mat-tfidf.npz",
-         "labels":"20Newsgroup?20ng-scikit-labels.csv",
+         "labels":"20Newsgroup?20ng_4groups_labels.csv",
          "dataset":"20Newsgroup"},        
         {"lda":"bbcsport?fulltext?bbcsport-textdata-mat-lda.npz", 
          "skipgram":"bbcsport?fulltext?bbcsport-textdata-mat-skipgram.npz",
@@ -640,13 +642,13 @@ def run_experimentation(seed=1, dataset_dir = ".."+os.sep+"data"): # set data di
     
     entropy_log = dict()
     for NCLUSTERS in [5,10,15]:#,20]:
-        logger.info("Experiments with %d clusters"%(NCLUSTERS))
+        logger.info("Experiments with {} clusters".format(NCLUSTERS))
         
         for ds in datasets:
             run = 0
             while run < 10:
                 random_state = np.random.randint(2**16 - 1)
-                logger.info("Starting run nr. %d with random state:%d."%(run, random_state))
+                logger.info("Starting run nr. {} with random state:{}.".format(run, random_state))
                 if ds["dataset"] not in entropy_log:
                     entropy_log[ds["dataset"]] = dict()
 		            
@@ -818,7 +820,7 @@ def results_rel_purity_per_dataset(pickle_results_file):
                 # compute maximum for the view and the dataset and the nr of clusters
                 maxpur_k_ds_v = np.max(results[ds][view][k]['purity'])
                 rel_purities[k][ds][view] = max_purities[k][ds] / maxpur_k_ds_v
-                logger.info('REL PURITY: %.4f / %.4f = %.4f' % (max_purities[k][ds], maxpur_k_ds_v, max_purities[k][ds] / maxpur_k_ds_v))
+                logger.info('REL PURITY: {:.4f} / {:.4f} = {:.4f}'.format(max_purities[k][ds], maxpur_k_ds_v, max_purities[k][ds] / maxpur_k_ds_v))
 
     return rel_purities
 
@@ -928,11 +930,11 @@ if __name__== "__main__":
     logger = logging.getLogger('NCF clustering')
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('ncf_run.log')
+    fh = logging.FileHandler('ga_ncf_run.log')
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
+    ch.setLevel(logging.INFO)
     # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     ch.setFormatter(formatter)
@@ -941,7 +943,7 @@ if __name__== "__main__":
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    run_experimentation() # dataset_dir parameter targets the dir where datasets are located.
+    run_experimentation(dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
     outputfmt = 'latex'
     
     logger.info("\nAverage Relative Entropy\n")
