@@ -203,7 +203,6 @@ tb1.register("mate", cxTwoPointCopy)
 tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
 tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
-
 ###############
 
 
@@ -254,9 +253,9 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
     return best_ind, stats
 
-def ga_merge(i,j,Pi,K):
+def ga_merge(i,j,Pi,K, popsize):
 
-    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j], popsize=50)
+    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j], popsize=popsize)
 
     return new_partitioning, {}
 
@@ -351,7 +350,7 @@ points between partition {} and {}".format(i,j,e,s))
         
     return new_partitioning, marked_points_weights
 
-def ga_proposal(result):
+def ga_proposal(result, popsize):
     """
     Version that employes a GA optimization strategy for merging partitions
     """
@@ -397,7 +396,7 @@ def ga_proposal(result):
         optimal_row = np.argmin(optimal_val_per_row) # row whose min distance is the global min.
         optimal_col = optimal_col_per_row[optimal_row] # combining the previous commands, obtain the least distant views to merge.
 
-        newclustering, exceptions = ga_merge(optimal_row, optimal_col, Pi, K)
+        newclustering, exceptions = ga_merge(optimal_row, optimal_col, Pi, K, popsize)
         #step_memberships.append(memberships_)
         K.append(np.unique(newclustering[np.where(newclustering >= 0)[0]]).shape[0]) 
         Pi.append(newclustering.copy())
@@ -634,7 +633,7 @@ def Entropy(labels_pred, labels_true):
 
 
     
-def run_experimentation(clusters_rng, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
+def run_experimentation(clusters_rng, POPSIZE=100, NRUNS=10, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
 
     datasets = [
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
@@ -660,7 +659,7 @@ def run_experimentation(clusters_rng, seed=1, dataset_dir = ".."+os.sep+"data"):
     ]
     
     np.random.seed(seed)
-    NRUNS = 2
+    
     entropy_log = dict()
     for NCLUSTERS in clusters_rng:
         logger.info("Experiments with {} clusters".format(NCLUSTERS))
@@ -726,7 +725,7 @@ def run_experimentation(clusters_rng, seed=1, dataset_dir = ".."+os.sep+"data"):
 		        # catch exception and delete last scores from entropy and purity lists of each viewname record.
                 try:
                     #proposal_result = new_proposal(views)
-                    proposal_result = ga_proposal(views)
+                    proposal_result = ga_proposal(views, POPSIZE)
 			        
                     entropy_ds_k = Entropy(proposal_result, labels)
                     purity_ds_k = Purity(proposal_result, labels)
@@ -966,8 +965,13 @@ if __name__== "__main__":
     logger.addHandler(fh)
 
     NCLUSTERS_RNG = [10]
-    run_experimentation(NCLUSTERS_RNG, dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
-    outputfmt = 'latex'
+    NRUNS = 5
+    POPSIZE = 300
+
+    logger.info("Running experimentation with runs:{} #clusters in {} and population size:{}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), POPSIZE) )
+    run_experimentation(NCLUSTERS_RNG, POPSIZE=POPSIZE, NRUNS=NRUNS,  dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
+    #outputfmt = 'latex'
+    outputfmt = 'fancy_grid'
     
     logger.info("\nAverage Relative Entropy\n")
     tdata, header = print_ave_entropy_results('entropy_log.p',NCLUSTERS_RNG)
