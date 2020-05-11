@@ -22,6 +22,7 @@ import logging
 
 import fraj_proposal as fraj
 
+import argparse
 
 
 
@@ -979,6 +980,14 @@ if __name__== "__main__":
     parser.add_argument('--logfile', dest="LOGOUTPUTFILE", type=str, required=True, help='an integer for the accumulator')
     parser.add_argument('--ga', dest="GA",  action='store_true', required=False, help='Use genetic merging. Otherwise, NCI merging strategy is employed')
     parser.add_argument('--popsize', dest="POPSIZE", type=int, default=300, required=False, help='an integer for the accumulator')
+
+
+    #####
+    """
+        Example usage: python NCF_clustering_fusion.py --nclusters 3 5 10 15 --nruns 5 --ga --logfile ga_ncf_run.log
+    """
+    ####
+
 
     args = parser.parse_args()
     #print(args)
