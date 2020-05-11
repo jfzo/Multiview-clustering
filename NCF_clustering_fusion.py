@@ -354,7 +354,8 @@ def ga_proposal(result, popsize):
     """
     Version that employes a GA optimization strategy for merging partitions
     """
-    logger.debug("GA MERGE")
+    logger.info("Executing GA-merging proposal")
+
     REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
     # capital Pi: list of partitionings.
     # A partitioning is a set of integers (data point id)
@@ -455,6 +456,7 @@ def new_proposal(result):
     """
     result: Partitionings as integer vectors. One vector for each view.
     """
+    logger.info("Executing NCI proposal")
     REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
     
 
@@ -633,7 +635,7 @@ def Entropy(labels_pred, labels_true):
 
 
     
-def run_experimentation(clusters_rng, POPSIZE=100, NRUNS=10, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
+def run_experimentation(clusters_rng, METHOD = None, POPSIZE=100, NRUNS=10, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
 
     datasets = [
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
@@ -724,9 +726,15 @@ def run_experimentation(clusters_rng, POPSIZE=100, NRUNS=10, seed=1, dataset_dir
 		        # execute proposal
 		        # catch exception and delete last scores from entropy and purity lists of each viewname record.
                 try:
+                    assert(METHOD != None)
+                    if METHOD == "GA":
+                        proposal_result = ga_proposal(views, POPSIZE)
+                    elif METHOD == "NCI":
+                        proposal_result = new_proposal(views)
+
                     #proposal_result = new_proposal(views)
-                    proposal_result = ga_proposal(views, POPSIZE)
-			        
+                    #proposal_result = ga_proposal(views, POPSIZE)
+
                     entropy_ds_k = Entropy(proposal_result, labels)
                     purity_ds_k = Purity(proposal_result, labels)
 			        
@@ -883,16 +891,23 @@ def print_ave_entropy_results(pickle_results_file, nclusters_rng):
     header = ["k"]
 	
     views = list(ave_entropies[list(ave_entropies.keys())[0]])
+
+    views.sort()
+
+
     for view in views:
         header.append(view)
 
     for k in nclusters_rng:
         view_row = [k]
         for view in views:
+            #logger.debug("*******")
+            #logger.debug("view: %s", view)
             view_row.append(ave_entropies[k][view])
         tab_data.append(view_row.copy())
 
     return tab_data, header
+
 
 
 
@@ -903,6 +918,9 @@ def print_ave_purity_results(pickle_results_file, nclusters_rng):
 
     header = ["k"]
     views = list(ave_purities[list(ave_purities.keys())[0]])    
+
+    views.sort()
+
     for view in views:
         header.append(view)
 
@@ -920,6 +938,9 @@ def print_rel_entropy_results(pickle_results_file, nclusters_rng):
     tab_data = []
 
     views = list(rel_entropies[list(rel_entropies.keys())[0]]['20Newsgroup'])
+
+    views.sort()
+
     for k in nclusters_rng:
         for ds in rel_entropies[k]:
             view_row = [k, ds]
@@ -935,6 +956,9 @@ def print_rel_purity_results(pickle_results_file, nclusters_rng):
     tab_data = []
 
     views = list(rel_purities[list(rel_purities.keys())[0]]['20Newsgroup'])
+
+    views.sort()
+
     for k in nclusters_rng:
         for ds in rel_purities[k]:
             view_row = [k, ds]
@@ -948,11 +972,40 @@ def print_rel_purity_results(pickle_results_file, nclusters_rng):
 
 if __name__== "__main__":
 
+    parser = argparse.ArgumentParser(description='Process some integers.')
+
+    parser.add_argument('--nruns', dest="NRUNS", type=int, default=10, required=True, help='an integer for the accumulator')
+    parser.add_argument('--nclusters', dest="NCLUSTERS_RNG", type=int, nargs='+', help='an integer for the accumulator')
+    parser.add_argument('--logfile', dest="LOGOUTPUTFILE", type=str, required=True, help='an integer for the accumulator')
+    parser.add_argument('--ga', dest="GA",  action='store_true', required=False, help='Use genetic merging. Otherwise, NCI merging strategy is employed')
+    parser.add_argument('--popsize', dest="POPSIZE", type=int, default=300, required=False, help='an integer for the accumulator')
+
+    args = parser.parse_args()
+    #print(args)
+
+    NCLUSTERS_RNG = args.NCLUSTERS_RNG
+    NRUNS = args.NRUNS
+    POPSIZE = args.POPSIZE
+    #METHOD = "NCI" | "GA"
+    METHOD = "NCI"
+    if args.GA:
+        METHOD = "GA"
+    log_output_file = args.LOGOUTPUTFILE
+    
+    # EXECUTION PARAMETERS
+    #NCLUSTERS_RNG = [15]
+    #NRUNS = 2
+    #POPSIZE = 300
+    #METHOD = "GA":
+    #METHOD = "NCI":
+    #log_output_file = 'nci_ncf_run.log',
+
+
     logger = logging.getLogger('NCF clustering')
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
-    fh = logging.FileHandler('ga_ncf_run.log', mode='w')
-    fh.setLevel(logging.INFO)
+    fh = logging.FileHandler(log_output_file, mode='w')
+    fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
     ch.setLevel(logging.DEBUG)
@@ -964,27 +1017,33 @@ if __name__== "__main__":
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    NCLUSTERS_RNG = [10]
-    NRUNS = 5
-    POPSIZE = 300
+    if args.GA:
+        logger.info("Running experimentation with runs:{} #clusters in {} population size:{} and output log file {}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), POPSIZE, log_output_file) )
+    else:
+        logger.info("Running experimentation with runs:{} #clusters in {} and output log file {}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), log_output_file) )
 
-    logger.info("Running experimentation with runs:{} #clusters in {} and population size:{}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), POPSIZE) )
-    run_experimentation(NCLUSTERS_RNG, POPSIZE=POPSIZE, NRUNS=NRUNS,  dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
-    #outputfmt = 'latex'
-    outputfmt = 'fancy_grid'
-    
-    logger.info("\nAverage Relative Entropy\n")
-    tdata, header = print_ave_entropy_results('entropy_log.p',NCLUSTERS_RNG)
-    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    try:
 
-    logger.info("\nRelative Entropy\n")
-    tdata, header = print_rel_entropy_results('entropy_log.p',NCLUSTERS_RNG)
-    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
-    
-    logger.info("\nAverage Relative Purity\n")
-    tdata, header = print_ave_purity_results('entropy_log.p',NCLUSTERS_RNG)
-    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+        run_experimentation(NCLUSTERS_RNG, METHOD=METHOD, POPSIZE=POPSIZE, NRUNS=NRUNS,  dataset_dir="./data") # dataset_dir parameter targets the dir where datasets are located.
+        #outputfmt = 'latex'
+        outputfmt = 'fancy_grid'
+        
+        logger.info("\nAverage Relative Entropy\n")
+        tdata, header = print_ave_entropy_results('entropy_log.p',NCLUSTERS_RNG)
+        logger.info("\n%s",tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
 
-    logger.info("\nRelative Purity\n")
-    tdata, header = print_rel_purity_results('entropy_log.p',NCLUSTERS_RNG)
-    logger.info(tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+        logger.info("\nRelative Entropy\n")
+        tdata, header = print_rel_entropy_results('entropy_log.p',NCLUSTERS_RNG)
+        logger.info("\n%s",tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+        
+        logger.info("\nAverage Relative Purity\n")
+        tdata, header = print_ave_purity_results('entropy_log.p',NCLUSTERS_RNG)
+        logger.info("\n%s",tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+
+        logger.info("\nRelative Purity\n")
+        tdata, header = print_rel_purity_results('entropy_log.p',NCLUSTERS_RNG)
+        logger.info("\n%s",tab(tdata, headers=header, tablefmt=outputfmt, floatfmt='.3f'))
+    except KeyboardInterrupt:
+        logger.info("Abruptly finished!")
+        sys.exit()
+        pass
