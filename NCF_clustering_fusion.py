@@ -154,17 +154,28 @@ def cxTwoPointCopy(ind1, ind2):
         [5 6 7 8]
     """
     size = len(ind1)
-    cxpoint1 = random.randint(1, size)
-    cxpoint2 = random.randint(1, size - 1)
-    if cxpoint2 >= cxpoint1:
-        cxpoint2 += 1
-    else: # Swap the two cx points
-        cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
-        = ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
+    a = random.randint(1, size)
+    b = random.randint(1, size - 1)
+    
+    cxpoint1 = np.min((a,b))
+    cxpoint2 = np.max((a,b))
+    
+    if cxpoint2 == cxpoint1:
+        cxpoint2 += 1
+
+    #print("cut point 1:", cxpoint1)
+    #print("cut point 2:", cxpoint2)
+
+    offspr_1 = np.array(ind1)
+    offspr_2 = np.array(ind2)
+    
+    offspr_1[cxpoint1:cxpoint2] = np.array(ind2[cxpoint1:cxpoint2])
+    offspr_2[cxpoint1:cxpoint2] = np.array(ind1[cxpoint1:cxpoint2])
+    #offspr_1[cxpoint1:cxpoint2], offspr_2[cxpoint1:cxpoint2] \
+    #= ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
         
-    return ind1, ind2
+    return offspr_1, offspr_2
 
 def repairCorrelative(A):
     current_ids = np.unique(A)
@@ -1037,7 +1048,9 @@ if __name__== "__main__":
                             METHOD=METHOD, 
                             POPSIZE=POPSIZE, 
                             NRUNS=NRUNS,  
-                            dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data") # dataset_dir parameter targets the dir where datasets are located.
+                            dataset_dir="./data"
+                            #dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
+                            ) # dataset_dir parameter targets the dir where datasets are located.
         #outputfmt = 'latex'
         outputfmt = 'fancy_grid'
         
