@@ -164,19 +164,18 @@ def cxTwoPointCopy(ind1, ind2):
     if cxpoint2 == cxpoint1:
         cxpoint2 += 1
 
-    #print("cut point 1:", cxpoint1)
-    #print("cut point 2:", cxpoint2)
-    logger.debug("Copying input vectors...")
-    offspr_1 = ind1.copy()
-    offspr_2 = ind2.copy()
+    #logger.debug("Copying input vectors...")
+    offspr_1 , offspr_2 = [tb1.clone(ind) for ind in (ind1, ind2)]
+    #offspr_1 = ind1.copy()
+    #offspr_2 = ind2.copy()
 
-    logger.debug("swapping selected segments")    
+    #logger.debug("swapping selected segments")    
     offspr_1[cxpoint1:cxpoint2] = ind2[cxpoint1:cxpoint2].copy()
     offspr_2[cxpoint1:cxpoint2] = ind1[cxpoint1:cxpoint2].copy()
     #offspr_1[cxpoint1:cxpoint2], offspr_2[cxpoint1:cxpoint2] \
     #= ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
 
-    logger.debug("returning new offspring.")        
+
     return offspr_1, offspr_2
 
 def repairCorrelative(A):
@@ -1050,8 +1049,8 @@ if __name__== "__main__":
                             METHOD=METHOD, 
                             POPSIZE=POPSIZE, 
                             NRUNS=NRUNS,  
-                            dataset_dir="./data"
-                            #dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
+                            #dataset_dir="./data"
+                            dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
                             ) # dataset_dir parameter targets the dir where datasets are located.
         #outputfmt = 'latex'
         outputfmt = 'fancy_grid'
