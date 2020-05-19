@@ -1049,8 +1049,8 @@ if __name__== "__main__":
                             METHOD=METHOD, 
                             POPSIZE=POPSIZE, 
                             NRUNS=NRUNS,  
-                            #dataset_dir="./data"
-                            dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
+                            dataset_dir="./data"
+                            #dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
                             ) # dataset_dir parameter targets the dir where datasets are located.
         #outputfmt = 'latex'
         outputfmt = 'fancy_grid'
