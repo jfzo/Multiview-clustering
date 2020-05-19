@@ -174,8 +174,10 @@ def cxTwoPointCopy(ind1, ind2):
     offspr_2[cxpoint1:cxpoint2] = ind1[cxpoint1:cxpoint2].copy()
     #offspr_1[cxpoint1:cxpoint2], offspr_2[cxpoint1:cxpoint2] \
     #= ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
-
-
+    
+    del offspr_1.fitness.values
+    del offspr_2.fitness.values
+    
     return offspr_1, offspr_2
 
 def repairCorrelative(A):
