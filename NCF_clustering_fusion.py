@@ -146,7 +146,7 @@ def cxTwoPointCopy(ind1, ind2):
     
         >>> import numpy
         >>> a = numpy.array((1,2,3,4))
-        >>> b = numpy.array((5,6,7,8))
+        >>> b = numpy.array((5.6.7.8))
         >>> a[1:3], b[1:3] = b[1:3], a[1:3]
         >>> print(a)
         [1 6 7 4]
@@ -154,31 +154,18 @@ def cxTwoPointCopy(ind1, ind2):
         [5 6 7 8]
     """
     size = len(ind1)
-
-    a = random.randint(1, size)
-    b = random.randint(1, size - 1)
-    
-    cxpoint1 = np.min((a,b))
-    cxpoint2 = np.max((a,b))
-    
-    if cxpoint2 == cxpoint1:
+    cxpoint1 = random.randint(1, size)
+    cxpoint2 = random.randint(1, size - 1)
+    if cxpoint2 >= cxpoint1:
         cxpoint2 += 1
+    else: # Swap the two cx points
+        cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-    #logger.debug("Copying input vectors...")
-    offspr_1 , offspr_2 = [tb1.clone(ind) for ind in (ind1, ind2)]
-    #offspr_1 = ind1.copy()
-    #offspr_2 = ind2.copy()
+    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
+        = ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
+        
+    return ind1, ind2
 
-    #logger.debug("swapping selected segments")    
-    offspr_1[cxpoint1:cxpoint2] = ind2[cxpoint1:cxpoint2].copy()
-    offspr_2[cxpoint1:cxpoint2] = ind1[cxpoint1:cxpoint2].copy()
-    #offspr_1[cxpoint1:cxpoint2], offspr_2[cxpoint1:cxpoint2] \
-    #= ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
-    
-    del offspr_1.fitness.values
-    del offspr_2.fitness.values
-    
-    return offspr_1, offspr_2
 
 def repairCorrelative(A):
     current_ids = np.unique(A)
@@ -209,17 +196,7 @@ def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
 ###########
 
 
-creator.create("Fitness", base.Fitness, weights=(-1.0,))
-creator.create("Individual", np.ndarray, fitness=creator.Fitness)
 
-tb1 = base.Toolbox()
-tb1.register("map", futures.map)
-tb1.register("mate", cxTwoPointCopy)
-#tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
-#mutUniformInt(individual, low, up, indpb)
-#tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
-tb1.register("select", tools.selRoulette)  # PARAM
-#tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
 ###############
 
@@ -236,7 +213,17 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
     NCLUSTERS = np.max([K_V1, K_V2])
     NPTS = V1.shape[0]
-
+    creator.create("Fitness", base.Fitness, weights=(-1.0,))
+    creator.create("Individual", np.ndarray, fitness=creator.Fitness)
+    
+    tb1 = base.Toolbox()
+    tb1.register("map", futures.map)
+    tb1.register("mate", cxTwoPointCopy) # cxTwoPointCopy defined above
+    #tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
+    #mutUniformInt(individual, low, up, indpb)
+    #tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
+    tb1.register("select", tools.selRoulette)  # PARAM
+    #tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
     #tb1 = base.Toolbox()
     tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=0, up=NCLUSTERS)
