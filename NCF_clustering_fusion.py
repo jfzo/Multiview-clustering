@@ -194,9 +194,21 @@ def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
 
 
 ###########
+# If the following instructions are created inside the ga_best_merge 
+# function, SCOOP fails!
+###
 
+creator.create("Fitness", base.Fitness, weights=(-1.0,))
+creator.create("Individual", np.ndarray, fitness=creator.Fitness)
 
-
+tb1 = base.Toolbox()
+tb1.register("map", futures.map)
+tb1.register("mate", cxTwoPointCopy) # cxTwoPointCopy defined above
+#tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
+#mutUniformInt(individual, low, up, indpb)
+#tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
+tb1.register("select", tools.selRoulette)  # PARAM
+#tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
 ###############
 
@@ -213,17 +225,7 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
     NCLUSTERS = np.max([K_V1, K_V2])
     NPTS = V1.shape[0]
-    creator.create("Fitness", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", np.ndarray, fitness=creator.Fitness)
-    
-    tb1 = base.Toolbox()
-    tb1.register("map", futures.map)
-    tb1.register("mate", cxTwoPointCopy) # cxTwoPointCopy defined above
-    #tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
-    #mutUniformInt(individual, low, up, indpb)
-    #tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
-    tb1.register("select", tools.selRoulette)  # PARAM
-    #tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+
 
     #tb1 = base.Toolbox()
     tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=0, up=NCLUSTERS)
