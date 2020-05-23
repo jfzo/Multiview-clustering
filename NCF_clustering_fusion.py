@@ -215,8 +215,11 @@ creator.create("Individual", np.ndarray, fitness=creator.Fitness)
 tb1 = base.Toolbox()
 tb1.register("map", futures.map)
 tb1.register("mate", cxTwoPointCopy)
-tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
-tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+#tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
+#mutUniformInt(individual, low, up, indpb)
+#tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
+tb1.register("select", tools.selRoulette)  # PARAM
+#tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
 ###############
 
@@ -236,12 +239,13 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
 
 
     #tb1 = base.Toolbox()
+    tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=0, up=NCLUSTERS)
     tb1.register("attr_item", random.randint, 0, NCLUSTERS) # each gene corresponds to a chr
     tb1.register("individual", tools.initRepeat, creator.Individual, tb1.attr_item, NPTS)
     tb1.register("population", tools.initRepeat, list, tb1.individual)
-    tb1.register("map", futures.map)
+    tb1.register("map", futures.map) # enabling scoop
     
-    tb1.register("evaluate", evalMatching, A=V2, B=V1, K_A=K_V1, K_B=K_V2)
+    tb1.register("evaluate", evalMatching, A=V1, B=V2, K_A=K_V1, K_B=K_V2)
 
 
     # running the genetic algorithm
@@ -261,16 +265,25 @@ def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
     stats.register("min", np.min)
     stats.register("max", np.max)
     
+    # eaSimple(population, toolbox, cxpb, mutpb, ngen[, stats, halloffame, verbose])
+    # cxpb – The probability that an offspring is produced by crossover.
+    """
+    Crossover is performed on two parents to form two new offspring. 
+    The GA has a crossover probability that determines if crossover will happen. 
+    """
+    # mutpb – The probability that an offspring is produced by mutation.
     algorithms.eaSimple(pop, tb1, cxpb=0.5, mutpb=0.2, ngen=40, stats=stats,
                         halloffame=hof)
-
+    # eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen[, stats, halloffame, verbose])
+    # mu – The number of individuals to select for the next generation.
+    # lambda_ – The number of children to produce at each generation.
     best_ind = np.array(tools.selBest(pop, 1)[0])
 
     return best_ind, stats
 
 def ga_merge(i,j,Pi,K, popsize):
 
-    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j],K[i], K[j], popsize=popsize)
+    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j], K[i], K[j], popsize=popsize)
 
     return new_partitioning, {}
 
