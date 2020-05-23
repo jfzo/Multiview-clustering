@@ -207,8 +207,8 @@ tb1.register("mate", cxTwoPointCopy) # cxTwoPointCopy defined above
 #tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
 #mutUniformInt(individual, low, up, indpb)
 #tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
-tb1.register("select", tools.selRoulette)  # PARAM
-#tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
+#tb1.register("select", tools.selRoulette)  # PARAM
+tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
 
 ###############
 
