@@ -25,7 +25,19 @@ import fraj_proposal as fraj
 import argparse
 
 
+def random_partition(Kmin, Kmax, n):
+    """
+    Generates a random assignment of `n` objects into `K` clusters
+    `K` will be randomly chosen between `Kmin` `Kmax`
+    """
+    
+    # TODO: Fix this. Kmin is not been used.
+    rnd_c = [np.random.randint(0, Kmax + 1) for i in range(n)]
+    
+    ord_c = np.unique(rnd_c)
+    rnd_c = np.array([np.where(ord_c == i)[0][0] for i in rnd_c])
 
+    return rnd_c
 
 
 def check_correlative_cluster_labels(S): 
@@ -469,21 +481,31 @@ def ga_proposal(result, popsize):
    
     return Pi[last_created_view]
 
+
+
 def new_proposal(result):
     """
     result: Partitionings as integer vectors. One vector for each view.
     """
     logger.info("Executing NCI proposal")
     REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
-    
-
+        
     # capital Pi: list of partitionings.
     # A partitioning is a set of integers (data point id)
     Pi = [x for name,x in result.items()]
     m = len(Pi) # nr. of views
+    
     logger.debug("initial number of views:".format(m) )
     K = [np.unique(k).shape[0] for k in Pi]
 
+    n = len(Pi[0])
+    N_rnd = 50
+    kmax = np.max(K)
+    rnd_p = [random_partition(None, kmax, n) for i in range(N_rnd)]    
+    # ranking
+    ave_complexity = [np.mean([compute_solutions_complexity(Pi[j], rnd_p[i], K[j], kmax)[2] for i in range(N_rnd)]) for j in range(m)]
+    # if ave_complexity[i] > ave_complexity[j] => view_i has more information thant view_j, thus it is ranked higher
+    
     ######
     # Distance matrix computation
     #
@@ -527,14 +549,25 @@ def new_proposal(result):
 
         #print(Aff)
 
-
-        newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
+        # original version had only the following line
+        #newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
+        # now the ranked version
+        if ave_complexity[optimal_row] > ave_complexity[optimal_col]:
+            newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
+        else:
+            newclustering, exceptions = merge(optimal_col, optimal_row, Pi, K, exception_weights, alpha=0.1)
+        
         #step_memberships.append(memberships_)
         K.append(np.unique(newclustering[np.where(newclustering >= 0)[0]]).shape[0]) 
         Pi.append(newclustering.copy())
         newclustering_index = len(Pi)-1
         last_created_view = newclustering_index
         exception_weights[newclustering_index] = exceptions
+        
+        # rank for the new view
+        new_complexity = np.mean([compute_solutions_complexity(Pi[newclustering_index], rnd_p[i], K[newclustering_index], kmax)[2] for i in range(N_rnd)])
+        ave_complexity.append(new_complexity)
+        logger.debug("Newly created view has reference average complexity {}".format(new_complexity))
         
         logger.debug("merge views {} and {} --> {} is created.".format(optimal_row, optimal_col, newclustering_index) )
 
@@ -1053,7 +1086,7 @@ if __name__== "__main__":
                             METHOD=METHOD, 
                             POPSIZE=POPSIZE, 
                             NRUNS=NRUNS,  
-                            dataset_dir="./data"
+                            dataset_dir="../../data"
                             #dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
                             ) # dataset_dir parameter targets the dir where datasets are located.
         #outputfmt = 'latex'
