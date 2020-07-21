@@ -40,8 +40,8 @@ class DataViewGenerator(ABC):
 
     def __build_views__(self):
         np.random.seed(self.seed)
-        random_state = np.random.randint(2 ** 16 - 1)
-
+        #random_state = np.random.randint(2 ** 16 - 1)
+        random_state = self.seed
         with open(self.dataset_dir + os.sep + self.data_views["labels"].replace("?", os.sep), 'r') as f:
             reader = csv.reader(f)
             lst_labels = list(reader)
@@ -56,9 +56,8 @@ class DataViewGenerator(ABC):
                 X = scipy.sparse.load_npz(self.dataset_dir + os.sep + self.data_views[viewname].replace("?", os.sep))
             else:
                 X = np.load(self.dataset_dir + os.sep + self.data_views[viewname].replace("?", os.sep))['arr_0']
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', n_init=3, init_size=900, batch_size=300,
-                                 random_state=random_state)
 
+            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
             km_labels = km.fit_predict(X)
             self.views[viewname] = km_labels
 
@@ -111,6 +110,10 @@ class ReutersView(DataViewGenerator):
 
 class WEBKBView(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
+        """
+
+        :rtype: object
+        """
         self.data_views = {"lda": "WebKB?webkb-textdata-mat-lda.npz",
                       "skipgram": "WebKB?webkb-textdata-mat-skipgram.npz",
                       "tfidf": "WebKB?webkb-textdata-mat-tfidf.npz",

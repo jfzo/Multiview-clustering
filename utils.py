@@ -58,13 +58,11 @@ def fix_cluster_labels(cl):
     return cpcl
 
 
-def random_partition(Kmin, Kmax, n):
+def random_partition(Kmax, n):
     """
-    Generates a random assignment of `n` objects into `K` clusters
-    `K` will be randomly chosen between `Kmin` `Kmax`
+    Generates a assignment of `n` objects into a random number of clusters.
+    Each objects is assigned to a cluster id in [0, Kmax] (extremes included).
     """
-    
-    # TODO: Fix this. Kmin is not been used.
     rnd_c = [np.random.randint(0, Kmax + 1) for i in range(n)]
     
     ord_c = np.unique(rnd_c)
@@ -193,3 +191,6 @@ def Entropy(labels_pred, labels_true):
         n_r = cnt_pred[r]
         sum_E += (n_r/n)*ce_r
     return sum_E
+
+if __name__ == '__main__':
+    print(random_partition(5, 10))
