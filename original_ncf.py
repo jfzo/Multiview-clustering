@@ -3,15 +3,14 @@ from logging_setup import logger
 from utils import *
 
 class NCFwR(object):
-    def __init__(self, input_partitions, number_random_partitions=50):
+    def __init__(self, input_partitions, number_random_partitions=50, seed: int = 1):
         """
         input_partitions: Dictionary with 
         partition-name:list of cluster assignments.
         """
-        #self.logger = logging.getLogger(__name__)
         self.logger = logger
         logger.debug("Starting NCFwR...")
-        
+        self.seed = seed
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         #logger.debug(str(input_partitions.keys()))
@@ -36,6 +35,7 @@ class NCFwR(object):
 
         n = len(self.Pi[0])
 
+        np.random.seed(seed=self.seed)
         kmax = np.max(K)
         rnd_p = [random_partition(kmax, n) for i in range(self.N_rnd)]
         # ranking
@@ -268,7 +268,7 @@ class NCFwR(object):
 
 
 class NCF(object):
-    def __init__(self, input_partitions):
+    def __init__(self, input_partitions, seed: int = None):
         """
         input_partitions: Dictionary with
         partition-name:list of cluster assignments.
@@ -276,7 +276,6 @@ class NCF(object):
         # self.logger = logging.getLogger(__name__)
         self.logger = logger
         logger.debug("Starting NCF...")
-
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         # logger.debug(str(input_partitions.keys()))

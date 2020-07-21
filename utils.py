@@ -149,6 +149,13 @@ def omega(pi_, p, A, epweights_A):
 
 
 def cluster_purity(r, labels_pred, labels_true):
+    """
+    Computes the class purity for a specific group label.
+    :param r: Specific group label.
+    :param labels_pred: Predicted labels
+    :param labels_true: Ground truth labels
+    :return: class purity
+    """
     r_items = np.where(labels_pred == r)[0]
     n_r = len(r_items)
     
@@ -156,6 +163,12 @@ def cluster_purity(r, labels_pred, labels_true):
     return (1/n_r)*np.max(lbls_cnts)
 
 def Purity(labels_pred, labels_true):
+    """
+    Computes the average purity between all the clusters.
+    :param labels_pred: Predicted labels
+    :param labels_true: Ground truth labels
+    :return: Average purity (higher the better!)
+    """
     L_pred, cnt_pred= np.unique(labels_pred, return_counts=True)
     n = len(labels_pred)
     sum_E = 0
@@ -166,6 +179,13 @@ def Purity(labels_pred, labels_true):
     return sum_E
     
 def cluster_entropy(r, labels_pred, labels_true):
+    """
+    Computes the class entropy for a specific group label.
+    :param r: Specific group label.
+    :param labels_pred: Predicted labels
+    :param labels_true: Ground truth labels
+    :return: class entropy
+    """
     L_true= np.unique(labels_true)
     q = len(L_true)
     # get items with label r
@@ -183,6 +203,12 @@ def cluster_entropy(r, labels_pred, labels_true):
     
 
 def Entropy(labels_pred, labels_true):
+    """
+    Computes the average entropy between all the clusters.
+    :param labels_pred: Predicted labels
+    :param labels_true: Ground truth labels
+    :return: Average entropy (lower the better!)
+    """
     L_pred, cnt_pred= np.unique(labels_pred, return_counts=True)
     n = len(labels_pred)
     sum_E = 0
