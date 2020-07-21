@@ -10,19 +10,23 @@ import scipy.sparse
 import pickle
 from tabulate import tabulate as tab
 
-from deap import algorithms
-from deap import base
-from deap import creator
-from deap import tools
 import random
-
-from scoop import futures
 
 import logging
 
 import fraj_proposal as fraj
 
 import argparse
+
+
+def fix_cluster_labels(cl):
+    u_c = np.unique(cl)
+    c_mapping = dict(zip(u_c, list(range(len(u_c))))) # makes consecutive labels
+    cpcl = cl.copy()
+    
+    for i in c_mapping:
+        cpcl[cl == i] = c_mapping[i]
+    return cpcl
 
 
 def random_partition(Kmin, Kmax, n):
@@ -146,147 +150,14 @@ def omega(pi_, p, A, epweights_A):
         return agreement_measure(pi_, N_p_V(p, A))
     # otherwise...
     Phi_A_pi = max_agreement_partition(pi_, A)
+    
+    #logger.debug(Phi_A_pi)
+    #logger.debug(list(epweights_A.keys()))
+
     # epweights_A must contain the tuple due to the former mark of p in A
     return agreement_measure(pi_, set(np.where(A == Phi_A_pi)[0])) * epweights_A[(p, Phi_A_pi)]
     
-########################### G.A ########################
-def cxTwoPointCopy(ind1, ind2):
-    """Execute a two points crossover with copy on the input individuals. The
-    copy is required because the slicing in numpy returns a view of the data,
-    which leads to a self overwritting in the swap operation. It prevents
-    ::
-    
-        >>> import numpy
-        >>> a = numpy.array((1,2,3,4))
-        >>> b = numpy.array((5.6.7.8))
-        >>> a[1:3], b[1:3] = b[1:3], a[1:3]
-        >>> print(a)
-        [1 6 7 4]
-        >>> print(b)
-        [5 6 7 8]
-    """
-    size = len(ind1)
-    cxpoint1 = random.randint(1, size)
-    cxpoint2 = random.randint(1, size - 1)
-    if cxpoint2 >= cxpoint1:
-        cxpoint2 += 1
-    else: # Swap the two cx points
-        cxpoint1, cxpoint2 = cxpoint2, cxpoint1
 
-    ind1[cxpoint1:cxpoint2], ind2[cxpoint1:cxpoint2] \
-        = ind2[cxpoint1:cxpoint2].copy(), ind1[cxpoint1:cxpoint2].copy()
-        
-    return ind1, ind2
-
-
-def repairCorrelative(A):
-    current_ids = np.unique(A)
-    L = len(current_ids)
-    correct_ids = np.arange(L)
-    for i,j in zip(current_ids, correct_ids):
-        if i != j:
-            A[np.where(A == i)[0]] = j
-
-def evalMatching(C, A=None, B=None, K_A=None, K_B=None):
-    """
-    Objective function for the G.A. strategy to merging partitions.
-    """
-    #K_A = np.unique(A).shape[0] #can be computed outside
-    #K_B = np.unique(B).shape[0] #can be computed outside
-    repairCorrelative(C)
-    K_C = np.unique(C).shape[0]
-
-    K_C_A = compute_solutions_complexity(C, A, K_C, K_A)[2]
-    K_C_B = compute_solutions_complexity(C, B, K_C, K_B)[2]
-    
-    K_A_C = compute_solutions_complexity(A, C, K_A, K_C)[2]
-    K_B_C = compute_solutions_complexity(B, C, K_B, K_C)[2]
-    
-    return K_C_A + K_C_B + K_A_C + K_B_C,
-
-
-###########
-# If the following instructions are created inside the ga_best_merge 
-# function, SCOOP fails!
-###
-
-creator.create("Fitness", base.Fitness, weights=(-1.0,))
-creator.create("Individual", np.ndarray, fitness=creator.Fitness)
-
-tb1 = base.Toolbox()
-tb1.register("map", futures.map)
-tb1.register("mate", cxTwoPointCopy) # cxTwoPointCopy defined above
-#tb1.register("mutate", tools.mutFlipBit, indpb=0.05) # PARAM
-#mutUniformInt(individual, low, up, indpb)
-#tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=, up=)
-#tb1.register("select", tools.selRoulette)  # PARAM
-tb1.register("select", tools.selTournament, tournsize=3)  # PARAM
-
-###############
-
-
-
-
-def ga_find_best_merge(V1, V2, K_V1, K_V2, popsize=300, seed=1):
-
-
-
-    #K_V1 = np.unique(V1).shape[0]
-    #V2 = np.array([0,0,1,0,0,1,1,2,2,2], dtype=np.int)
-    #K_V2 = np.unique(V2).shape[0]
-
-    NCLUSTERS = np.max([K_V1, K_V2])
-    NPTS = V1.shape[0]
-
-
-    #tb1 = base.Toolbox()
-    tb1.register("mutate", tools.mutUniformInt, indpb=0.05, low=0, up=NCLUSTERS)
-    tb1.register("attr_item", random.randint, 0, NCLUSTERS) # each gene corresponds to a chr
-    tb1.register("individual", tools.initRepeat, creator.Individual, tb1.attr_item, NPTS)
-    tb1.register("population", tools.initRepeat, list, tb1.individual)
-    tb1.register("map", futures.map) # enabling scoop
-    
-    tb1.register("evaluate", evalMatching, A=V1, B=V2, K_A=K_V1, K_B=K_V2)
-
-
-    # running the genetic algorithm
-    random.seed(seed)
-    
-    pop = tb1.population(n=popsize)
-    
-    # Numpy equality function (operators.eq) between two arrays returns the
-    # equality element wise, which raises an exception in the if similar()
-    # check of the hall of fame. Using a different equality function like
-    # numpy.array_equal or numpy.allclose solve this issue.
-    hof = tools.HallOfFame(1, similar=np.array_equal)
-    
-    stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", np.mean)
-    stats.register("std", np.std)
-    stats.register("min", np.min)
-    stats.register("max", np.max)
-    
-    # eaSimple(population, toolbox, cxpb, mutpb, ngen[, stats, halloffame, verbose])
-    # cxpb – The probability that an offspring is produced by crossover.
-    """
-    Crossover is performed on two parents to form two new offspring. 
-    The GA has a crossover probability that determines if crossover will happen. 
-    """
-    # mutpb – The probability that an offspring is produced by mutation.
-    algorithms.eaSimple(pop, tb1, cxpb=0.5, mutpb=0.2, ngen=40, stats=stats,
-                        halloffame=hof)
-    # eaMuPlusLambda(population, toolbox, mu, lambda_, cxpb, mutpb, ngen[, stats, halloffame, verbose])
-    # mu – The number of individuals to select for the next generation.
-    # lambda_ – The number of children to produce at each generation.
-    best_ind = np.array(tools.selBest(pop, 1)[0])
-
-    return best_ind, stats
-
-def ga_merge(i,j,Pi,K, popsize):
-
-    new_partitioning, _ = ga_find_best_merge(Pi[i], Pi[j], K[i], K[j], popsize=popsize)
-
-    return new_partitioning, {}
 
 def merge(i,j,Pi,K, exception_weights, alpha=0.7):
     """
@@ -317,7 +188,7 @@ def merge(i,j,Pi,K, exception_weights, alpha=0.7):
     for v in range(len(r2)):
         #print("MERGE(%d, %d)"%(v, r2[v]))
         merge_ops[r2[v]].add(v)
-    #print(merge_ops)
+    logger.debug(merge_ops)
     
     cache = {} #employed for storing the updated versions of the partitions not merged.
     #new_partitioning = np.zeros(Pi[i].shape, dtype=np.int32)
@@ -350,7 +221,7 @@ points between partition {} and {}".format(i,j,e,s))
             logger.warning("|view {} partition {}| : {}".format(i,e,len(set_vie)))
             for pt in s:
                 logger.warning("|view {} partition {}| : {}({})".format(j,pt,len(cache[pt]),len(set(np.where(Pi[j] == pt)[0])) ) )
-            # maybe this issue shoud throw an exception since the result is no longer valid (Bad source clustering).
+            # maybe this issue should throw an exception since the result is no longer valid (Bad source clustering).
             assert len(c) > 0
             
         new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
@@ -379,108 +250,6 @@ points between partition {} and {}".format(i,j,e,s))
         
     return new_partitioning, marked_points_weights
 
-def ga_proposal(result, popsize):
-    """
-    Version that employes a GA optimization strategy for merging partitions
-    """
-    logger.info("Executing GA-merging proposal")
-
-    REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
-    # capital Pi: list of partitionings.
-    # A partitioning is a set of integers (data point id)
-    Pi = [x for name,x in result.items()]
-    m = len(Pi) # nr. of views
-    logger.debug("initial number of views: {}".format(m))
-    K = [np.unique(k).shape[0] for k in Pi]
-
-    ######
-    # Distance matrix computation
-    #
-    Aff = np.repeat(REFERENCE_VALUE, m**2).reshape(m, m)
-
-    for i in range(m-1):
-        for j in range(i+1,m):
-            _,_,val1 = compute_solutions_complexity(Pi[i], Pi[j], K[i], K[j])
-            _,_,val2 = compute_solutions_complexity(Pi[j], Pi[i], K[j], K[i])
-            #if(len(set(e1.keys()) & set(e2.keys())) != len(set(e1.keys()) | set(e2.keys())) ):
-            #    print("C1:%d C2:%d"%(i,j))
-            #else:
-            #    print("*C1:%d C2:%d"%(i,j))
-            Aff[i,j] = val1 + val2
-            Aff[j,i] = Aff[i,j]
-    #print(Aff)
-
-    processed_views = set() # stores the partitionings already merged so they are not re-used
-    #marked_pts = {} # dictionary with point ids (integer) as keys and list of tuples (cluster-id; weight)
-    #
-    # the following must be repeated until no more partitionings can be merged.
-    # It seems that the condition is that the min value of the distance matrix is Inf.
-    exception_weights = {} # dict with View_id as key and a dict ((point_id,cluster_id)->weight) as value.
-    n_its = 0
-    last_created_view = -1
-    while( not np.isinf(np.min(Aff)) ):
-        #print("merge views %d and %d"%(mindist_partitions, row_min_dist) )
-        # Picking current views having minimum complexity:
-        optimal_col_per_row = np.argmin(Aff, axis=1) # for each row, which column presents the lowest distance
-        optimal_val_per_row = np.min(Aff, axis=1)
-        optimal_row = np.argmin(optimal_val_per_row) # row whose min distance is the global min.
-        optimal_col = optimal_col_per_row[optimal_row] # combining the previous commands, obtain the least distant views to merge.
-
-        newclustering, exceptions = ga_merge(optimal_row, optimal_col, Pi, K, popsize)
-        #step_memberships.append(memberships_)
-        K.append(np.unique(newclustering[np.where(newclustering >= 0)[0]]).shape[0]) 
-        Pi.append(newclustering.copy())
-        newclustering_index = len(Pi)-1
-        last_created_view = newclustering_index
-
-        logger.debug("merge views {} and {} --> {} is created.".format(optimal_row, optimal_col, newclustering_index) )
-
-        # TODO: add exceptions to the overall list
-        #for e,_ in exceptions:
-        #    if e not in marked_pts:
-        #        marked_pts[e] = []
-        #    marked_pts[e].append((newclustering_index, 1/merging_dist))
-
-        # set the rows/columns of merged partitions as processed!
-        processed_views.add(optimal_row)
-        processed_views.add(optimal_col)
-
-        # Update the distance matrix: Set the merged partitionings distances to infinity so they
-        # are not employed in posterior iterations ~ Removing these partitions from the set of candidates
-        Aff[optimal_col,:] = np.repeat(REFERENCE_VALUE, m)
-        Aff[:,optimal_col] = np.repeat(REFERENCE_VALUE, m)
-        Aff[optimal_row,:] = np.repeat(REFERENCE_VALUE, m)
-        Aff[:,optimal_row] = np.repeat(REFERENCE_VALUE, m)
-
-        # Include the new partitioning into the set of views:
-        #    * A row and column are added to represent the new clustering.
-        #    * Distances between this new partitioning and the valid ones are computed.
-        Aff = np.vstack(( 
-            np.hstack((
-                Aff, np.repeat(REFERENCE_VALUE, Aff.shape[0]).reshape(Aff.shape[0],1) )), 
-            np.repeat(REFERENCE_VALUE, Aff.shape[0]+1) ))
-
-        #print("1st partition:",np.unique(Pi[newclustering_index]))
-        # Update the Kolmogorov complexities
-        for j in range(len(Pi)):
-            if j in processed_views or j == newclustering_index:
-                continue
-            _,_,val1 = compute_solutions_complexity(Pi[newclustering_index], Pi[j], K[newclustering_index], K[j])
-            _,_,val2 = compute_solutions_complexity(Pi[j], Pi[newclustering_index], K[j], K[newclustering_index])
-
-            Aff[newclustering_index,j] = val1 + val2
-            Aff[j,newclustering_index] = Aff[newclustering_index,j]
-
-        #update the m value
-        m = len(Pi)
-
-        n_its += 1
-        if n_its > 50:
-            logger.warning("Nr. of max iterations reached. Halting!")
-            break
-   
-    return Pi[last_created_view]
-
 
 
 def new_proposal(result):
@@ -492,7 +261,10 @@ def new_proposal(result):
         
     # capital Pi: list of partitionings.
     # A partitioning is a set of integers (data point id)
+    logger.debug(str(result.keys()))
+    
     Pi = [x for name,x in result.items()]
+    
     m = len(Pi) # nr. of views
     
     logger.debug("initial number of views:".format(m) )
@@ -553,8 +325,10 @@ def new_proposal(result):
         #newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
         # now the ranked version
         if ave_complexity[optimal_row] > ave_complexity[optimal_col]:
-            newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
+            logger.debug("Merging views %d with %d" % (optimal_row, optimal_col)) 
+            newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)            
         else:
+            logger.debug("Merging views %d with %d" % (optimal_col, optimal_row))             
             newclustering, exceptions = merge(optimal_col, optimal_row, Pi, K, exception_weights, alpha=0.1)
         
         #step_memberships.append(memberships_)
@@ -683,9 +457,77 @@ def Entropy(labels_pred, labels_true):
     return sum_E
 
 
-
+def run_on_gionis(dir_path):
+    file = open(dir_path+os.sep+"uci-votes-84.clustering.7.cp", 'rb')
+    votes = pickle.load(file)
+    file.close()        
+    votes_labels= np.loadtxt(dir_path+os.sep+"uci-votes-84.labels", dtype=np.int)
     
-def run_experimentation(clusters_rng, METHOD = None, POPSIZE=100, NRUNS=10, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
+    file = open(dir_path+os.sep+"uci_mushrooms.clustering.7.cp", 'rb')
+    mushrooms = pickle.load(file)
+    file.close()
+    mushrooms_labels= np.loadtxt(dir_path+os.sep+"uci_mushrooms.labels", dtype=np.int)
+
+
+    file = open(dir_path+os.sep+"gionis_aggregation.clustering.7.cp", 'rb')
+    gionis = pickle.load(file)
+    file.close()
+    gionis_labels= np.loadtxt(dir_path+os.sep+"gionis_aggregation.labels", dtype=np.int)
+    
+    dataset = {}
+    """
+    dataset["votes"] = {}
+    dataset["votes"]["labels"] = votes_labels
+    dataset["votes"]["views"] = votes
+    """
+    dataset["mushrooms"] = {}
+    dataset["mushrooms"]["labels"] = mushrooms_labels
+    dataset["mushrooms"]["views"] = mushrooms
+    """
+    dataset["gionis"] = {}
+    dataset["gionis"]["labels"] = gionis_labels
+    dataset["gionis"]["views"] = gionis
+    """   
+    quality_log = dict()
+                
+    for ds in dataset:
+        views = dataset[ds]["views"]
+        labels = dataset[ds]["labels"]
+        
+        # fix labels (neccessary for kolmogorov computaiton)
+        labels = fix_cluster_labels(labels)
+        for alg in views:
+            views[alg] = fix_cluster_labels(views[alg])
+
+        
+        # execute proposal
+        # catch exception and delete last scores from entropy and purity lists of each viewname record.
+        try:
+            assert(METHOD != None)
+                
+            proposal_result = None
+                
+            if METHOD == "NCI":
+                proposal_result = new_proposal(views)
+
+            #proposal_result = new_proposal(views)
+
+            entropy_ds_k = Entropy(proposal_result, labels)
+            purity_ds_k = Purity(proposal_result, labels)
+
+            quality_log[ds] = {}
+            quality_log[ds]["entropy"] = entropy_ds_k
+            quality_log[ds]["purity"] = purity_ds_k                
+                
+        except AssertionError as e:
+            logger.error(e)
+            continue    
+    
+    logger.debug(quality_log)
+    pickle.dump( quality_log, open( "entropy_log.p", "wb" ) )
+    return quality_log
+    
+def run_experimentation(clusters_rng, METHOD = None, NRUNS=10, seed=1, dataset_dir = ".."+os.sep+"data"): # set data directory with the 2nd param.
 
     datasets = [
         {"lda":"20Newsgroup?20ng_4groups_lda.npz", 
@@ -777,13 +619,10 @@ def run_experimentation(clusters_rng, METHOD = None, POPSIZE=100, NRUNS=10, seed
 		        # catch exception and delete last scores from entropy and purity lists of each viewname record.
                 try:
                     assert(METHOD != None)
-                    if METHOD == "GA":
-                        proposal_result = ga_proposal(views, POPSIZE)
-                    elif METHOD == "NCI":
+                    if METHOD == "NCI":
                         proposal_result = new_proposal(views)
 
                     #proposal_result = new_proposal(views)
-                    #proposal_result = ga_proposal(views, POPSIZE)
 
                     entropy_ds_k = Entropy(proposal_result, labels)
                     purity_ds_k = Purity(proposal_result, labels)
@@ -1021,19 +860,59 @@ def print_rel_purity_results(pickle_results_file, nclusters_rng):
 
 
 if __name__== "__main__":
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('--logfile', dest="LOGOUTPUTFILE", type=str, required=True, help='an integer for the accumulator')
+    parser.add_argument('--datapath', dest="DATAPATH", type=str, required=True, help='an integer for the accumulator')
+    #####
+    """
+        Example usage: python NCF_clustering_fusion.py --logfile ncf_run.log
+    """
+    ####
+    METHOD = "NCI"
+
+
+    args = parser.parse_args()
+    log_output_file = args.LOGOUTPUTFILE
+    input_path= args.DATAPATH
+                
+    logger = logging.getLogger('NCF clustering')
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler(log_output_file, mode='w')
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.DEBUG)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(filename)s(%(lineno)d):%(funcName)s / %(levelname)s - %(message)s')
+    ch.setFormatter(formatter)
+    fh.setFormatter(formatter)
+    # add the handlers to logger
+    logger.addHandler(ch)
+    logger.addHandler(fh)
+
+    logger.info("Running experimentation with input path {} output log file {}".format(input_path, log_output_file) )
+    try:
+        # ".."+os.sep+".."+os.sep+"data"+os.sep+"cluster_aggregation"
+        q = run_on_gionis(input_path)
+    except KeyboardInterrupt:
+        logger.info("Abruptly finished!")
+        sys.exit()
+        pass
+
+                
+if __name__== "__2main__":
 
     parser = argparse.ArgumentParser(description='Process some integers.')
 
     parser.add_argument('--nruns', dest="NRUNS", type=int, default=10, required=True, help='an integer for the accumulator')
     parser.add_argument('--nclusters', dest="NCLUSTERS_RNG", type=int, nargs='+', help='an integer for the accumulator')
     parser.add_argument('--logfile', dest="LOGOUTPUTFILE", type=str, required=True, help='an integer for the accumulator')
-    parser.add_argument('--ga', dest="GA",  action='store_true', required=False, help='Use genetic merging. Otherwise, NCI merging strategy is employed')
-    parser.add_argument('--popsize', dest="POPSIZE", type=int, default=300, required=False, help='an integer for the accumulator')
-
+    
 
     #####
     """
-        Example usage: python NCF_clustering_fusion.py --nclusters 3 5 10 15 --nruns 5 --ga --logfile ga_ncf_run.log
+        Example usage: python NCF_clustering_fusion.py --nclusters 3 5 10 15 --nruns 5 --logfile ncf_run.log
     """
     ####
 
@@ -1043,20 +922,9 @@ if __name__== "__main__":
 
     NCLUSTERS_RNG = args.NCLUSTERS_RNG
     NRUNS = args.NRUNS
-    POPSIZE = args.POPSIZE
-    #METHOD = "NCI" | "GA"
     METHOD = "NCI"
-    if args.GA:
-        METHOD = "GA"
     log_output_file = args.LOGOUTPUTFILE
     
-    # EXECUTION PARAMETERS
-    #NCLUSTERS_RNG = [15]
-    #NRUNS = 2
-    #POPSIZE = 300
-    #METHOD = "GA":
-    #METHOD = "NCI":
-    #log_output_file = 'nci_ncf_run.log',
 
 
     logger = logging.getLogger('NCF clustering')
@@ -1075,16 +943,12 @@ if __name__== "__main__":
     logger.addHandler(ch)
     logger.addHandler(fh)
 
-    if args.GA:
-        logger.info("Running experimentation with runs:{} #clusters in {} population size:{} and output log file {}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), POPSIZE, log_output_file) )
-    else:
-        logger.info("Running experimentation with runs:{} #clusters in {} and output log file {}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), log_output_file) )
+    logger.info("Running experimentation with runs:{} #clusters in {} and output log file {}".format(NRUNS, ' '.join(map(str, NCLUSTERS_RNG)), log_output_file) )
 
     try:
 
         run_experimentation(NCLUSTERS_RNG, 
                             METHOD=METHOD, 
-                            POPSIZE=POPSIZE, 
                             NRUNS=NRUNS,  
                             dataset_dir="../../data"
                             #dataset_dir="../Google Drive/Research - Multiview and Collaborative Clustering/data"
