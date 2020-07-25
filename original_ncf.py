@@ -1,9 +1,11 @@
 import logging
+from multiprocessing import Value
+
 from logging_setup import logger
 from utils import *
 
 class NCFwR(object):
-    def __init__(self, input_partitions, number_random_partitions=50, seed: int = 1):
+    def __init__(self, number_random_partitions=50, seed: int = 1):
         """
         input_partitions: Dictionary with 
         partition-name:list of cluster assignments.
@@ -14,15 +16,21 @@ class NCFwR(object):
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         #logger.debug(str(input_partitions.keys()))
-        
-        self.Pi = [x for name,x in input_partitions.items()]
         self.N_rnd = number_random_partitions
+        self.Pi = None
+
+    def setInputPartitions(self,  input_partitions):
+        self.Pi = [x for name,x in input_partitions.items()]
+
 
     def run(self):
         """
         result: Partitionings as integer vectors. One vector for each view.
         """
         #result = self.partitions
+        if self.Pi is None:
+            logger.error("input partitions must be set first")
+            raise ValueError
 
         logger.debug("Executing NCI proposal")
         REFERENCE_VALUE = float('Inf') # this value is used for minimum-distance merging
@@ -268,7 +276,7 @@ class NCFwR(object):
 
 
 class NCF(object):
-    def __init__(self, input_partitions, seed: int = None):
+    def __init__(self):
         """
         input_partitions: Dictionary with
         partition-name:list of cluster assignments.
@@ -280,15 +288,21 @@ class NCF(object):
         # A partitioning is a set of integers (data point id)
         # logger.debug(str(input_partitions.keys()))
 
+
+    def setInputPartitions(self, input_partitions):
         self.Pi = [x for name, x in input_partitions.items()]
 
-    def run(self):
+    def run(self) -> object:
         """
         result: Partitionings as integer vectors. One vector for each view.
         """
         # result = self.partitions
 
         logger.debug("Executing NCI proposal")
+        if self.Pi is None:
+            logger.error("input partitions must be set first")
+            raise ValueError
+
         REFERENCE_VALUE = float('Inf')  # this value is used for minimum-distance merging
 
         m = len(self.Pi)  # nr. of views

@@ -1,0 +1,344 @@
+2020-07-21 17:23:42,524 - original_ncf.py(286):__init__ / DEBUG - Starting NCF...
+2020-07-21 17:23:42,524 - original_ncf.py(14):__init__ / DEBUG - Starting NCFwR...
+2020-07-21 17:23:42,576 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:23:42,698 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:23:42,767 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:23:42,857 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:23:42,896 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:23:42,896 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:23:43,003 - original_ncf.py(360):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:23:43,030 - original_ncf.py(469):merge / DEBUG - {0: {0}, 1: {2}, 2: {2, 4}, 3: {1, 3}, 4: {2}}
+2020-07-21 17:23:46,078 - original_ncf.py(371):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:23:46,119 - original_ncf.py(360):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:23:46,159 - original_ncf.py(469):merge / DEBUG - {0: {3}, 1: {0, 4}, 2: {4}, 3: {2}, 4: {1, 3}}
+2020-07-21 17:23:53,038 - original_ncf.py(371):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:23:53,038 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:23:53,046 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:23:53,047 - experiments.py(71):<module> / DEBUG - Entropy: 0.520848
+2020-07-21 17:23:53,047 - experiments.py(72):<module> / DEBUG - Purity: 0.711839
+2020-07-21 17:23:53,047 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:23:53,047 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:23:53,071 - original_ncf.py(360):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:23:53,078 - original_ncf.py(469):merge / DEBUG - {0: {4}, 1: {0}, 2: {2, 3}, 3: {4}, 4: {1}}
+2020-07-21 17:23:53,173 - original_ncf.py(371):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:23:53,183 - original_ncf.py(360):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:23:53,192 - original_ncf.py(469):merge / DEBUG - {0: {1, 4}, 1: {2}, 2: {0, 3}, 3: {2}, 4: {2}}
+2020-07-21 17:23:53,436 - original_ncf.py(371):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:23:53,436 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:23:53,439 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:23:53,439 - experiments.py(71):<module> / DEBUG - Entropy: 0.330925
+2020-07-21 17:23:53,439 - experiments.py(72):<module> / DEBUG - Purity: 0.788331
+2020-07-21 17:23:53,439 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:23:53,439 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:23:53,513 - original_ncf.py(360):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:23:53,536 - original_ncf.py(469):merge / DEBUG - {0: {0, 2}, 1: {0, 1, 4}, 2: {3}, 3: {0}, 4: {0}}
+2020-07-21 17:23:54,096 - original_ncf.py(371):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:23:54,123 - original_ncf.py(360):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:23:54,148 - original_ncf.py(469):merge / DEBUG - {0: {4}, 1: {0}, 2: {1, 2}, 3: {1, 3}, 4: {0, 4}}
+2020-07-21 17:23:55,927 - original_ncf.py(371):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:23:55,927 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:23:55,932 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:23:55,932 - experiments.py(71):<module> / DEBUG - Entropy: 0.362255
+2020-07-21 17:23:55,932 - experiments.py(72):<module> / DEBUG - Purity: 0.768844
+2020-07-21 17:23:55,932 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:23:55,932 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:23:56,062 - original_ncf.py(360):run / DEBUG - Merging views 0 with 2
+2020-07-21 17:23:56,105 - original_ncf.py(469):merge / DEBUG - {0: {0, 3, 4}, 1: {2}, 2: {1}, 3: {1}, 4: {1}}
+2020-07-21 17:23:58,572 - original_ncf.py(371):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:23:58,620 - original_ncf.py(360):run / DEBUG - Merging views 1 with 3
+2020-07-21 17:23:58,669 - original_ncf.py(469):merge / DEBUG - {0: {4}, 1: {1}, 2: {4}, 3: {0, 1, 2, 3, 4}, 4: {2}}
+2020-07-21 17:24:06,205 - original_ncf.py(371):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:24:06,205 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:06,213 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:24:06,213 - experiments.py(71):<module> / DEBUG - Entropy: 0.874988
+2020-07-21 17:24:06,213 - experiments.py(72):<module> / DEBUG - Purity: 0.459871
+2020-07-21 17:24:06,262 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:06,386 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:06,454 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:06,545 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:06,583 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:06,583 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:08,080 - original_ncf.py(100):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:24:08,110 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {2}, 2: {2, 4}, 3: {1, 3}, 4: {2}}
+2020-07-21 17:24:11,462 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 39671.3
+2020-07-21 17:24:11,462 - original_ncf.py(118):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:24:11,507 - original_ncf.py(103):run / DEBUG - Merging views 3 with 2
+2020-07-21 17:24:11,551 - original_ncf.py(215):merge / DEBUG - {0: {1}, 1: {4}, 2: {3}, 3: {0, 4}, 4: {1, 2}}
+2020-07-21 17:24:18,982 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 40331.05
+2020-07-21 17:24:18,982 - original_ncf.py(118):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:24:18,982 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:18,991 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:24:18,991 - experiments.py(71):<module> / DEBUG - Entropy: 0.506576
+2020-07-21 17:24:18,991 - experiments.py(72):<module> / DEBUG - Purity: 0.726306
+2020-07-21 17:24:18,991 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:18,991 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:19,330 - original_ncf.py(103):run / DEBUG - Merging views 1 with 0
+2020-07-21 17:24:19,337 - original_ncf.py(215):merge / DEBUG - {0: {1}, 1: {4}, 2: {2}, 3: {2}, 4: {0, 3}}
+2020-07-21 17:24:19,525 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7319.6
+2020-07-21 17:24:19,526 - original_ncf.py(118):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:24:19,536 - original_ncf.py(103):run / DEBUG - Merging views 3 with 2
+2020-07-21 17:24:19,545 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {0}, 2: {1, 4}, 3: {3}, 4: {2}}
+2020-07-21 17:24:19,871 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7416.95
+2020-07-21 17:24:19,871 - original_ncf.py(118):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:24:19,871 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:19,874 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:24:19,874 - experiments.py(71):<module> / DEBUG - Entropy: 0.377392
+2020-07-21 17:24:19,874 - experiments.py(72):<module> / DEBUG - Purity: 0.818182
+2020-07-21 17:24:19,874 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:19,874 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:20,830 - original_ncf.py(100):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:24:20,854 - original_ncf.py(215):merge / DEBUG - {0: {0, 2}, 1: {0, 1, 4}, 2: {3}, 3: {0}, 4: {0}}
+2020-07-21 17:24:21,679 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 25699.55
+2020-07-21 17:24:21,679 - original_ncf.py(118):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:24:21,705 - original_ncf.py(103):run / DEBUG - Merging views 3 with 2
+2020-07-21 17:24:21,731 - original_ncf.py(215):merge / DEBUG - {0: {1, 4}, 1: {2, 3}, 2: {2}, 3: {3}, 4: {0, 4}}
+2020-07-21 17:24:23,648 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 26109.05
+2020-07-21 17:24:23,648 - original_ncf.py(118):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:24:23,648 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:23,653 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:24:23,653 - experiments.py(71):<module> / DEBUG - Entropy: 0.353338
+2020-07-21 17:24:23,653 - experiments.py(72):<module> / DEBUG - Purity: 0.795340
+2020-07-21 17:24:23,653 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:23,653 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:25,538 - original_ncf.py(103):run / DEBUG - Merging views 2 with 0
+2020-07-21 17:24:25,578 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {2, 3, 4}, 2: {1}, 3: {0}, 4: {0}}
+2020-07-21 17:24:28,503 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 52572.5
+2020-07-21 17:24:28,504 - original_ncf.py(118):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:24:28,552 - original_ncf.py(103):run / DEBUG - Merging views 3 with 1
+2020-07-21 17:24:28,599 - original_ncf.py(215):merge / DEBUG - {0: {3}, 1: {0, 2, 3, 4}, 2: {1, 3}, 3: {3}, 4: {3}}
+2020-07-21 17:24:36,635 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 52856.0
+2020-07-21 17:24:36,635 - original_ncf.py(118):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:24:36,635 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:36,643 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:24:36,643 - experiments.py(71):<module> / DEBUG - Entropy: 0.617105
+2020-07-21 17:24:36,643 - experiments.py(72):<module> / DEBUG - Purity: 0.642772
+2020-07-21 17:24:36,643 - original_ncf.py(286):__init__ / DEBUG - Starting NCF...
+2020-07-21 17:24:36,643 - original_ncf.py(14):__init__ / DEBUG - Starting NCFwR...
+2020-07-21 17:24:36,680 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:36,791 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:36,855 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:36,952 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:37,019 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:37,019 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:24:37,108 - original_ncf.py(360):run / DEBUG - Merging views 1 with 2
+2020-07-21 17:24:37,134 - original_ncf.py(469):merge / DEBUG - {0: {2}, 1: {0, 1, 2, 3, 4}, 2: {1}, 3: {2}, 4: {1}}
+2020-07-21 17:24:37,271 - original_ncf.py(371):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:37,305 - original_ncf.py(360):run / DEBUG - Merging views 0 with 3
+2020-07-21 17:24:37,340 - original_ncf.py(469):merge / DEBUG - {0: {1, 2}, 1: {0, 1, 3}, 2: {1}, 3: {1, 4}, 4: {1}}
+2020-07-21 17:24:38,263 - original_ncf.py(371):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:38,263 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:38,268 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:24:38,268 - experiments.py(71):<module> / DEBUG - Entropy: 0.518228
+2020-07-21 17:24:38,268 - experiments.py(72):<module> / DEBUG - Purity: 0.684677
+2020-07-21 17:24:38,268 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:38,268 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:24:38,289 - original_ncf.py(360):run / DEBUG - Merging views 1 with 2
+2020-07-21 17:24:38,296 - original_ncf.py(469):merge / DEBUG - {0: {0, 3}, 1: {1, 4}, 2: {2}, 3: {3}, 4: {2}}
+2020-07-21 17:24:38,370 - original_ncf.py(371):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:38,380 - original_ncf.py(360):run / DEBUG - Merging views 0 with 3
+2020-07-21 17:24:38,389 - original_ncf.py(469):merge / DEBUG - {0: {1}, 1: {1, 4}, 2: {1}, 3: {0, 2, 3}, 4: {1}}
+2020-07-21 17:24:38,612 - original_ncf.py(371):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:38,613 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:38,615 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:24:38,615 - experiments.py(71):<module> / DEBUG - Entropy: 0.548509
+2020-07-21 17:24:38,615 - experiments.py(72):<module> / DEBUG - Purity: 0.671642
+2020-07-21 17:24:38,615 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:38,615 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:24:38,689 - original_ncf.py(360):run / DEBUG - Merging views 1 with 2
+2020-07-21 17:24:38,711 - original_ncf.py(469):merge / DEBUG - {0: {2}, 1: {3}, 2: {3}, 3: {0, 1, 3, 4}, 4: {0}}
+2020-07-21 17:24:39,282 - original_ncf.py(371):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:39,304 - original_ncf.py(360):run / DEBUG - Merging views 0 with 3
+2020-07-21 17:24:39,331 - original_ncf.py(469):merge / DEBUG - {0: {3, 4}, 1: {1, 3}, 2: {0, 2, 3}, 3: {3}, 4: {3}}
+2020-07-21 17:24:40,946 - original_ncf.py(371):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:40,946 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:40,951 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:24:40,951 - experiments.py(71):<module> / DEBUG - Entropy: 0.268974
+2020-07-21 17:24:40,951 - experiments.py(72):<module> / DEBUG - Purity: 0.805847
+2020-07-21 17:24:40,951 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:40,951 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:24:41,098 - original_ncf.py(360):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:24:41,138 - original_ncf.py(469):merge / DEBUG - {0: {0, 3, 4}, 1: {3}, 2: {3}, 3: {1, 2, 3}, 4: {3}}
+2020-07-21 17:24:41,510 - original_ncf.py(371):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:24:41,560 - original_ncf.py(360):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:24:41,608 - original_ncf.py(469):merge / DEBUG - {0: {2}, 1: {1, 2}, 2: {3, 4}, 3: {3}, 4: {0}}
+2020-07-21 17:24:45,082 - original_ncf.py(371):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:24:45,082 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:45,089 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:24:45,089 - experiments.py(71):<module> / DEBUG - Entropy: 0.616698
+2020-07-21 17:24:45,089 - experiments.py(72):<module> / DEBUG - Purity: 0.624673
+2020-07-21 17:24:45,127 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:45,237 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:45,301 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:45,393 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:45,458 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:45,458 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:46,940 - original_ncf.py(103):run / DEBUG - Merging views 2 with 1
+2020-07-21 17:24:46,965 - original_ncf.py(215):merge / DEBUG - {0: {1}, 1: {1, 2, 4}, 2: {0, 1, 3}, 3: {1}, 4: {1}}
+2020-07-21 17:24:47,517 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 37882.5
+2020-07-21 17:24:47,517 - original_ncf.py(118):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:47,555 - original_ncf.py(103):run / DEBUG - Merging views 3 with 0
+2020-07-21 17:24:47,581 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {2, 3}, 2: {1, 4}, 3: {0}, 4: {4}}
+2020-07-21 17:24:50,342 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 38750.25
+2020-07-21 17:24:50,342 - original_ncf.py(118):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:50,342 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:50,348 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:24:50,348 - experiments.py(71):<module> / DEBUG - Entropy: 0.548578
+2020-07-21 17:24:50,348 - experiments.py(72):<module> / DEBUG - Purity: 0.655743
+2020-07-21 17:24:50,348 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:50,348 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:50,692 - original_ncf.py(103):run / DEBUG - Merging views 2 with 1
+2020-07-21 17:24:50,698 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {1}, 2: {2, 4}, 3: {0, 3}, 4: {1}}
+2020-07-21 17:24:50,871 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7239.3
+2020-07-21 17:24:50,871 - original_ncf.py(118):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:50,881 - original_ncf.py(103):run / DEBUG - Merging views 3 with 0
+2020-07-21 17:24:50,889 - original_ncf.py(215):merge / DEBUG - {0: {0, 3}, 1: {1, 2}, 2: {3}, 3: {3}, 4: {4}}
+2020-07-21 17:24:51,208 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7457.1
+2020-07-21 17:24:51,208 - original_ncf.py(118):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:51,208 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:51,211 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:24:51,211 - experiments.py(71):<module> / DEBUG - Entropy: 0.321152
+2020-07-21 17:24:51,211 - experiments.py(72):<module> / DEBUG - Purity: 0.791045
+2020-07-21 17:24:51,211 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:51,211 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:52,206 - original_ncf.py(103):run / DEBUG - Merging views 2 with 1
+2020-07-21 17:24:52,226 - original_ncf.py(215):merge / DEBUG - {0: {3, 4}, 1: {3}, 2: {0}, 3: {1, 2, 3}, 4: {3}}
+2020-07-21 17:24:53,096 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 24963.1
+2020-07-21 17:24:53,096 - original_ncf.py(118):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:24:53,122 - original_ncf.py(103):run / DEBUG - Merging views 3 with 0
+2020-07-21 17:24:53,148 - original_ncf.py(215):merge / DEBUG - {0: {2}, 1: {0, 4}, 2: {2}, 3: {1, 3}, 4: {2}}
+2020-07-21 17:24:55,093 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 25393.4
+2020-07-21 17:24:55,093 - original_ncf.py(118):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:24:55,093 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:55,098 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:24:55,098 - experiments.py(71):<module> / DEBUG - Entropy: 0.355025
+2020-07-21 17:24:55,098 - experiments.py(72):<module> / DEBUG - Purity: 0.751485
+2020-07-21 17:24:55,098 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:55,098 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:24:56,990 - original_ncf.py(103):run / DEBUG - Merging views 1 with 0
+2020-07-21 17:24:57,034 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {3}, 2: {3}, 3: {0, 1, 2, 3, 4}, 4: {0}}
+2020-07-21 17:24:57,784 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 50935.2
+2020-07-21 17:24:57,784 - original_ncf.py(118):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:24:57,828 - original_ncf.py(103):run / DEBUG - Merging views 3 with 2
+2020-07-21 17:24:57,877 - original_ncf.py(215):merge / DEBUG - {0: {4}, 1: {2}, 2: {2}, 3: {0, 1, 2, 3, 4}, 4: {4}}
+2020-07-21 17:24:59,234 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 51656.2
+2020-07-21 17:24:59,235 - original_ncf.py(118):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:24:59,235 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:24:59,239 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:24:59,240 - experiments.py(71):<module> / DEBUG - Entropy: 0.927184
+2020-07-21 17:24:59,240 - experiments.py(72):<module> / DEBUG - Purity: 0.410574
+2020-07-21 17:24:59,240 - original_ncf.py(286):__init__ / DEBUG - Starting NCF...
+2020-07-21 17:24:59,240 - original_ncf.py(14):__init__ / DEBUG - Starting NCFwR...
+2020-07-21 17:24:59,294 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:59,421 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:59,498 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:59,578 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:24:59,638 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:24:59,638 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:24:59,749 - original_ncf.py(360):run / DEBUG - Merging views 0 with 2
+2020-07-21 17:24:59,779 - original_ncf.py(469):merge / DEBUG - {0: {0}, 1: {1, 2}, 2: {3}, 3: {3, 4}, 4: {3}}
+2020-07-21 17:25:01,641 - original_ncf.py(371):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:25:01,677 - original_ncf.py(360):run / DEBUG - Merging views 1 with 3
+2020-07-21 17:25:01,711 - original_ncf.py(469):merge / DEBUG - {0: {2}, 1: {1}, 2: {0, 2, 3, 4}, 3: {1}, 4: {2}}
+2020-07-21 17:25:07,027 - original_ncf.py(371):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:25:07,027 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:07,034 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:25:07,034 - experiments.py(71):<module> / DEBUG - Entropy: 0.806807
+2020-07-21 17:25:07,034 - experiments.py(72):<module> / DEBUG - Purity: 0.479776
+2020-07-21 17:25:07,034 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:07,034 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:25:07,056 - original_ncf.py(360):run / DEBUG - Merging views 1 with 2
+2020-07-21 17:25:07,062 - original_ncf.py(469):merge / DEBUG - {0: {0}, 1: {0, 1, 2}, 2: {2}, 3: {4}, 4: {3}}
+2020-07-21 17:25:07,117 - original_ncf.py(371):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:25:07,126 - original_ncf.py(360):run / DEBUG - Merging views 0 with 3
+2020-07-21 17:25:07,134 - original_ncf.py(469):merge / DEBUG - {0: {1, 2, 3}, 1: {4}, 2: {0, 1}, 3: {1}, 4: {1}}
+2020-07-21 17:25:07,317 - original_ncf.py(371):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:25:07,317 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:07,319 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:25:07,319 - experiments.py(71):<module> / DEBUG - Entropy: 0.521124
+2020-07-21 17:25:07,319 - experiments.py(72):<module> / DEBUG - Purity: 0.677069
+2020-07-21 17:25:07,319 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:07,319 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:25:07,386 - original_ncf.py(360):run / DEBUG - Merging views 0 with 2
+2020-07-21 17:25:07,407 - original_ncf.py(469):merge / DEBUG - {0: {1, 3}, 1: {4}, 2: {0, 2}, 3: {0}, 4: {2}}
+2020-07-21 17:25:08,115 - original_ncf.py(371):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:25:08,145 - original_ncf.py(360):run / DEBUG - Merging views 1 with 3
+2020-07-21 17:25:08,168 - original_ncf.py(469):merge / DEBUG - {0: {1}, 1: {2}, 2: {0, 2, 3, 4}, 3: {4}, 4: {1, 2}}
+2020-07-21 17:25:10,354 - original_ncf.py(371):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:25:10,354 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:10,359 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:25:10,359 - experiments.py(71):<module> / DEBUG - Entropy: 0.545543
+2020-07-21 17:25:10,359 - experiments.py(72):<module> / DEBUG - Purity: 0.566926
+2020-07-21 17:25:10,359 - original_ncf.py(301):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:10,359 - original_ncf.py(310):run / DEBUG - initial number of views:
+2020-07-21 17:25:10,492 - original_ncf.py(360):run / DEBUG - Merging views 0 with 1
+2020-07-21 17:25:10,531 - original_ncf.py(469):merge / DEBUG - {0: {3}, 1: {3}, 2: {2, 3}, 3: {0, 1, 3}, 4: {3, 4}}
+2020-07-21 17:25:11,303 - original_ncf.py(371):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:25:11,351 - original_ncf.py(360):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:25:11,398 - original_ncf.py(469):merge / DEBUG - {0: {0}, 1: {2, 4}, 2: {0}, 3: {1}, 4: {3}}
+2020-07-21 17:25:16,963 - original_ncf.py(371):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:25:16,963 - original_ncf.py(421):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:16,973 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:25:16,974 - experiments.py(71):<module> / DEBUG - Entropy: 0.620320
+2020-07-21 17:25:16,974 - experiments.py(72):<module> / DEBUG - Purity: 0.631103
+2020-07-21 17:25:17,024 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:25:17,150 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:25:17,224 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:25:17,300 - data_source.py(80):__build_views__ / DEBUG - Opening data representation for view tfidf in sparse format
+2020-07-21 17:25:17,359 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:17,359 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:25:18,849 - original_ncf.py(100):run / DEBUG - Merging views 0 with 2
+2020-07-21 17:25:18,878 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {1, 2}, 2: {3}, 3: {3, 4}, 4: {3}}
+2020-07-21 17:25:21,145 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 39509.45
+2020-07-21 17:25:21,145 - original_ncf.py(118):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:25:21,180 - original_ncf.py(103):run / DEBUG - Merging views 3 with 1
+2020-07-21 17:25:21,212 - original_ncf.py(215):merge / DEBUG - {0: {2}, 1: {1, 3}, 2: {0, 2, 4}, 3: {2}, 4: {2}}
+2020-07-21 17:25:27,205 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 40418.8
+2020-07-21 17:25:27,205 - original_ncf.py(118):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:25:27,205 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:27,212 - experiments.py(70):<module> / DEBUG - Performance of 20Newsgroup
+2020-07-21 17:25:27,212 - experiments.py(71):<module> / DEBUG - Entropy: 0.520376
+2020-07-21 17:25:27,212 - experiments.py(72):<module> / DEBUG - Purity: 0.676410
+2020-07-21 17:25:27,212 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:27,213 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:25:27,566 - original_ncf.py(100):run / DEBUG - Merging views 1 with 2
+2020-07-21 17:25:27,572 - original_ncf.py(215):merge / DEBUG - {0: {0}, 1: {0, 1, 2}, 2: {2}, 3: {4}, 4: {3}}
+2020-07-21 17:25:27,715 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7085.3
+2020-07-21 17:25:27,715 - original_ncf.py(118):run / DEBUG - merge views 1 and 2 --> 3 is created.
+2020-07-21 17:25:27,723 - original_ncf.py(103):run / DEBUG - Merging views 3 with 0
+2020-07-21 17:25:27,731 - original_ncf.py(215):merge / DEBUG - {0: {2}, 1: {0, 2, 3, 4}, 2: {0}, 3: {0}, 4: {1}}
+2020-07-21 17:25:27,999 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 7160.65
+2020-07-21 17:25:28,000 - original_ncf.py(118):run / DEBUG - merge views 0 and 3 --> 4 is created.
+2020-07-21 17:25:28,000 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:28,002 - experiments.py(70):<module> / DEBUG - Performance of BBCSport
+2020-07-21 17:25:28,002 - experiments.py(71):<module> / DEBUG - Entropy: 0.451203
+2020-07-21 17:25:28,002 - experiments.py(72):<module> / DEBUG - Purity: 0.654003
+2020-07-21 17:25:28,002 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:28,002 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:25:28,969 - original_ncf.py(103):run / DEBUG - Merging views 2 with 0
+2020-07-21 17:25:28,989 - original_ncf.py(215):merge / DEBUG - {0: {2, 3}, 1: {0}, 2: {2, 4}, 3: {0}, 4: {1}}
+2020-07-21 17:25:29,982 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 25063.85
+2020-07-21 17:25:29,982 - original_ncf.py(118):run / DEBUG - merge views 0 and 2 --> 3 is created.
+2020-07-21 17:25:30,008 - original_ncf.py(103):run / DEBUG - Merging views 3 with 1
+2020-07-21 17:25:30,029 - original_ncf.py(215):merge / DEBUG - {0: {2}, 1: {2}, 2: {1, 2, 3, 4}, 3: {2}, 4: {0, 4}}
+2020-07-21 17:25:32,592 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 25108.05
+2020-07-21 17:25:32,593 - original_ncf.py(118):run / DEBUG - merge views 1 and 3 --> 4 is created.
+2020-07-21 17:25:32,593 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:32,597 - experiments.py(70):<module> / DEBUG - Performance of Reuters-R8
+2020-07-21 17:25:32,597 - experiments.py(71):<module> / DEBUG - Entropy: 0.335500
+2020-07-21 17:25:32,597 - experiments.py(72):<module> / DEBUG - Purity: 0.764733
+2020-07-21 17:25:32,597 - original_ncf.py(35):run / DEBUG - Executing NCI proposal
+2020-07-21 17:25:32,597 - original_ncf.py(41):run / DEBUG - initial number of views:
+2020-07-21 17:25:34,457 - original_ncf.py(103):run / DEBUG - Merging views 1 with 0
+2020-07-21 17:25:34,496 - original_ncf.py(215):merge / DEBUG - {0: {3}, 1: {3}, 2: {2}, 3: {0, 1, 2, 3, 4}, 4: {4}}
+2020-07-21 17:25:35,569 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 45888.2
+2020-07-21 17:25:35,569 - original_ncf.py(118):run / DEBUG - merge views 0 and 1 --> 3 is created.
+2020-07-21 17:25:35,615 - original_ncf.py(100):run / DEBUG - Merging views 2 with 3
+2020-07-21 17:25:35,662 - original_ncf.py(215):merge / DEBUG - {0: {3}, 1: {0, 1, 2, 3, 4}, 2: {3}, 3: {3}, 4: {3}}
+2020-07-21 17:25:39,046 - original_ncf.py(116):run / DEBUG - Newly created view has reference average complexity 50467.6
+2020-07-21 17:25:39,046 - original_ncf.py(118):run / DEBUG - merge views 2 and 3 --> 4 is created.
+2020-07-21 17:25:39,046 - original_ncf.py(166):run / DEBUG - Solving the exceptions!
+2020-07-21 17:25:39,052 - experiments.py(70):<module> / DEBUG - Performance of WebKB
+2020-07-21 17:25:39,052 - experiments.py(71):<module> / DEBUG - Entropy: 0.650639
+2020-07-21 17:25:39,052 - experiments.py(72):<module> / DEBUG - Purity: 0.580138
+2020-07-21 17:25:39,052 - experiments.py(80):<module> / INFO - Elapsed time 116.527 secs
+2020-07-21 17:25:39,052 - experiments.py(81):<module> / INFO - Results stored into file RES_Jul212020.172539_117secs.json
