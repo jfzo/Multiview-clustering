@@ -1,4 +1,9 @@
-# 20-07-2020
+# 26-07-2020
+# TODO: (Main) Assess the stability of the view ranks in NCFwR
+# TODO: Answer how the random partitions affect the 'Bias'
+# TODO: Answer how many random partitions are neccessary for the Method to obtain the same rank or performance result
+# TODO: End the evaluation procedure!
+
 from original_ncf import NCFwR, NCF
 import utils
 from logging_setup import logger
