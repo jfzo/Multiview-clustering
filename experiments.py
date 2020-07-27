@@ -1,8 +1,14 @@
 # 26-07-2020
+# TODO: End the evaluation procedure!
 # TODO: (Main) Assess the stability of the view ranks in NCFwR
 # TODO: Answer how the random partitions affect the 'Bias'
 # TODO: Answer how many random partitions are neccessary for the Method to obtain the same rank or performance result
-# TODO: End the evaluation procedure!
+# For each dataset:
+# # for each method M
+# # # for each k, repeat the procedure and pick the best entropy/purity
+# # Pick the best value among all the methods
+# # # relative-entropy ~ Divide each ave-entropy by smallest entropy
+# # # relative-purity ~ Divide the best purity by each ave-purity
 
 from original_ncf import NCFwR, NCF
 import utils
@@ -15,6 +21,13 @@ from datetime import datetime
 from time import perf_counter
 from math import ceil
 
+
+"""
+Currently
+fix value 'number_random_partitions'
+fix value of 'k'
+For each run r  -> for each assessed method  ->  for each dataset 
+"""
 if __name__ == "__main__":
     nruns = 3
     k_val = 5  # eventually, a different value could be specified for each different view
@@ -23,7 +36,7 @@ if __name__ == "__main__":
     n_rnd_part = 20
 
     # data = "D:\Google Drive\Research - Multiview and Collaborative Clustering\data"
-    data = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
+    data = "D:/Google Drive/Research - Multiview and Collaborative Clustering/data"
     header = ["method", "k", "dataset", "entropy", "purity"]
     tdata = []
     start_time = perf_counter()

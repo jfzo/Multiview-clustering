@@ -218,5 +218,80 @@ def Entropy(labels_pred, labels_true):
         sum_E += (n_r/n)*ce_r
     return sum_E
 
+def flat_performance_dict(results, report_relative = False):
+    """
+    Generates a dictionary with each method and view along with the best results for that method over that view.
+    The consensus keys are the proposals. The other ones denote the original views clustered by kmeans.
+    :param results: Dict with the results
+    :return:
+    """
+    ov_max_purity = -float("inf")
+    ov_min_entropy = float("inf")
+    output = {}
+    for M in results.keys():
+        for DS in results[M].keys():
+            for V in results[M][DS].keys():
+                entry_name = "%s_%s_%s_k_%d" % (M,V, DS, results[M][DS][V]['K'])
+                output[entry_name] = {}
+                output[entry_name]['entropy'] = np.min( results[M][DS][V]['entropy'] )
+                output[entry_name]['purity'] = np.max(results[M][DS][V]['purity'])
+                ov_min_entropy = output[entry_name]['entropy'] if output[entry_name]['entropy'] < ov_min_entropy else ov_min_entropy
+                ov_max_purity = output[entry_name]['purity'] if output[entry_name]['purity'] > ov_max_purity else ov_max_purity
+    #output["min_entropy"] = ov_min_entropy
+    #output["max_purity"] = ov_max_purity
+    if report_relative:
+        return dict([(k, {'entropy': values['entropy'] / ov_min_entropy,
+                          'purity': ov_max_purity / values['purity']}) for k, values in output.items()])
+
+    return output
+
+
+def tab_from_flat(flat_results, measure = None):
+    """
+    Generates a lists of lists ready to be displayed by the tabulate package.
+    :param flat_results: flat dictionary built by 'flat_performance_dict' function.
+    :return: A tuple with the column names and a list of lists ready to be displayed with tabulate package.
+    """
+    assert measure is None
+
+    cols = ["k", "dataset"]
+    methods = {}
+    for k in flat_results:
+        columns = k.split("_")
+        if not columns[1] in cols:
+            cols.append(columns[1])
+
+    tb_results = {}
+    for k in flat_results:
+        columns = k.split("_")
+        # method columns[0]
+        # view columns[1]
+        # dataset columns[2]
+        # columns[4] k-value
+        if not columns[0] in tb_results:
+            tb_results[columns[0]] = {}
+        if not columns[2] in tb_results[columns[0]]:
+            tb_results[columns[0]][columns[2]] = [None for i in range(len(cols))]
+            tb_results[columns[0]][columns[2]][0] = columns[4]
+            tb_results[columns[0]][columns[2]][1] = columns[2]
+
+        i = cols.index(columns[1])
+        tb_results[columns[0]][columns[2]][i] = flat_results[k][measure]
+
+    # print(flat_results)
+    #print(cols)
+    #print(tb_results)
+    cols.insert(0, 'Method')
+    tb_data = [[M] + perf for M, P in tb_results.items() for d, perf in P.items()]
+    return cols, tb_data
+
+
 if __name__ == '__main__':
-    print(random_partition(5, 10))
+    import json
+    import numpy as np
+    from tabulate import tabulate
+    #print(random_partition(5, 10))
+    R = json.load(open("RES_Jul262020.214611_135secs.json"))
+    flat_results = flat_performance_dict(R, report_relative=True)
+    cols, tb_data = tab_from_flat(flat_results)
+    print(tabulate(tb_data, headers=cols))
