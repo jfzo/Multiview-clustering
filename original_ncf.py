@@ -11,13 +11,17 @@ class NCFwR(object):
         partition-name:list of cluster assignments.
         """
         self.logger = logger
-        logger.debug("Starting NCFwR...")
+        self.__method_name = "NCFwR#%d" % (number_random_partitions)
+        logger.debug("Starting %s..." % (self.__method_name))
         self.seed = seed
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         #logger.debug(str(input_partitions.keys()))
         self.N_rnd = number_random_partitions
         self.Pi = None
+
+    def getName(self):
+        return self.__method_name
 
     def setInputPartitions(self,  input_partitions):
         self.Pi = [x for name,x in input_partitions.items()]
@@ -47,9 +51,11 @@ class NCFwR(object):
         kmax = np.max(K)
         rnd_p = [random_partition(kmax, n) for i in range(self.N_rnd)]
         # ranking
+        # for each view, the average complexity against all random clusterings is computed.
         ave_complexity = [np.mean([compute_solutions_complexity(self.Pi[j], rnd_p[i], K[j], kmax)[2] for i in range(self.N_rnd)]) for j in range(m)]
         # if ave_complexity[i] > ave_complexity[j] => view_i has more information thant view_j, thus it is ranked higher
-        
+        logger.debug("Average Complexities under #rndcst=%d" % (self.N_rnd))
+        logger.debug("%s" % (ave_complexity) )
         ######
         # Distance matrix computation
         #
@@ -246,7 +252,9 @@ class NCFwR(object):
                 for pt in s:
                     logger.warning("|view {} partition {}| : {}({})".format(j,pt,len(cache[pt]),len(set(np.where(self.Pi[j] == pt)[0])) ) )
                 # maybe this issue should throw an exception since the result is no longer valid (Bad source clustering).
-                assert len(c) > 0
+                #assert len(c) > 0
+                raise BadSourcePartitionException(e,s)
+
                 
             new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
             cluster_id += 1
@@ -275,6 +283,16 @@ class NCFwR(object):
         return new_partitioning, marked_points_weights
 
 
+class BadSourcePartitionException(Exception):
+    def __init__(self, e: int, s: set):
+        self.s = s
+        self.e = e
+
+    def __str__(self):
+        return "Empty merging for view #%d ~ %s" % (self.e, self.s)
+
+
+
 class NCF(object):
     def __init__(self):
         """
@@ -283,11 +301,14 @@ class NCF(object):
         """
         # self.logger = logging.getLogger(__name__)
         self.logger = logger
-        logger.debug("Starting NCF...")
+        self.__method_name = "NCF"
+        logger.debug("Starting %s..." % (self.__method_name))
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         # logger.debug(str(input_partitions.keys()))
 
+    def getName(self):
+        return self.__method_name
 
     def setInputPartitions(self, input_partitions):
         self.Pi = [x for name, x in input_partitions.items()]
@@ -501,7 +522,8 @@ class NCF(object):
                     logger.warning("|view {} partition {}| : {}({})".format(j, pt, len(cache[pt]),
                                                                             len(set(np.where(self.Pi[j] == pt)[0]))))
                 # maybe this issue should throw an exception since the result is no longer valid (Bad source clustering).
-                assert len(c) > 0
+                #assert len(c) > 0
+                raise BadSourcePartitionException(e,s)
 
             new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
             cluster_id += 1
