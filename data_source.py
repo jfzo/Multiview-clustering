@@ -40,7 +40,10 @@ class DataViewGenerator(ABC):
             for v in self.data_views:
                 #if not v in ["labels","dataset"]:
                 self.NCLUSTERS[v] = NCLUSTERS
-        #self.NCLUSTERS = NCLUSTERS
+        elif isinstance(NCLUSTERS, dict):
+            self.NCLUSTERS = NCLUSTERS
+        else:
+            raise NotImplemented
 
         self.seed = seed
         self.views = {}

@@ -10,6 +10,18 @@ import csv
 import scipy.sparse
 import random
 
+
+def repairCorrelative(A):
+    arr_A = np.array(A)
+    current_ids = np.unique(arr_A)
+    L = len(current_ids)
+    correct_ids = np.arange(L)
+    for i,j in zip(current_ids, correct_ids):
+        if i != j:
+            arr_A[np.where(arr_A == i)[0]] = j
+    return arr_A
+
+
 def K_int(n):
     return np.floor(np.log2(n))
 
@@ -23,8 +35,12 @@ def compute_solutions_complexity(S1, S2, K1, K2, labels=None):
     """
     # K(S1 | S2)
     # TODO: Normalize labels both solutions to be in ranges [0,K1[ and [0,K2[ respectively.
-    assert check_correlative_cluster_labels(S1)
-    assert check_correlative_cluster_labels(S2)
+    if not check_correlative_cluster_labels(S1):
+        logger.debug("reparing non correlative label partitions %s" % (S1))
+        S1 = repairCorrelative(S1)
+    if not check_correlative_cluster_labels(S2):
+        logger.debug("reparing non correlative label partitions %s" % (S2))
+        S2 = repairCorrelative(S2)
     
     #cnf_matrix = confusion_matrix(S2, S1) # y_true, y_pred
     # rows in confusion_mat are associated to S2
@@ -231,7 +247,8 @@ def flat_performance_dict(results, report_relative = False):
     for M in results.keys():
         for DS in results[M].keys():
             for V in results[M][DS].keys():
-                entry_name = "%s_%s_%s_k_%d" % (M,V, DS, results[M][DS][V]['K'])
+                #entry_name = "%s_%s_%s_k_%d" % (M,V, DS, results[M][DS][V]['K'])
+                entry_name = "%s_%s_%s_k_%s" % (M, V, DS, DS.split(":")[1])
                 output[entry_name] = {}
                 output[entry_name]['entropy'] = np.min( results[M][DS][V]['entropy'] )
                 output[entry_name]['purity'] = np.max(results[M][DS][V]['purity'])
@@ -246,13 +263,13 @@ def flat_performance_dict(results, report_relative = False):
     return output
 
 
-def tab_from_flat(flat_results, measure = None):
+def tab_from_flat(flat_results, measure):
     """
     Generates a lists of lists ready to be displayed by the tabulate package.
     :param flat_results: flat dictionary built by 'flat_performance_dict' function.
     :return: A tuple with the column names and a list of lists ready to be displayed with tabulate package.
     """
-    assert measure is None
+
 
     cols = ["k", "dataset"]
     methods = {}
@@ -291,7 +308,8 @@ if __name__ == '__main__':
     import numpy as np
     from tabulate import tabulate
     #print(random_partition(5, 10))
-    R = json.load(open("RES_Jul262020.214611_135secs.json"))
+    R = json.load(open("RES_Jul272020.215706_710secs.json"))
     flat_results = flat_performance_dict(R, report_relative=True)
-    cols, tb_data = tab_from_flat(flat_results)
+    cols, tb_data = tab_from_flat(flat_results, measure='entropy')
     print(tabulate(tb_data, headers=cols))
+
