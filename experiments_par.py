@@ -107,8 +107,7 @@ def scoop_perform_single_run(params):
 
     return results_per_run
 
-def scoop_perform_single_run_toy(params):
-    print(params)
+
 
 if __name__ == '__main__':
     #data = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
