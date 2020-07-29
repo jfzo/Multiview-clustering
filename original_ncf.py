@@ -1,8 +1,9 @@
 import logging
 from multiprocessing import Value
-
+import numpy as np
 from logging_setup import logger
 from utils import *
+
 
 class NCFwR(object):
     def __init__(self, *args, **kwargs):

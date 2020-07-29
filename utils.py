@@ -1,6 +1,6 @@
 from logging_setup import logger
 from sklearn.metrics import confusion_matrix
-
+import numpy as np
 
 def repairCorrelative(A):
     arr_A = np.array(A)
