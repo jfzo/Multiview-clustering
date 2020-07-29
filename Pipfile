@@ -13,7 +13,6 @@ pandas = "*"
 h5py = "*"
 tabulate = "*"
 matplotlib = "*"
-scoop = "*"
 
 [requires]
 python_version = "3.7"

@@ -13,28 +13,23 @@
 from original_ncf import NCFwR, NCF, BadSourcePartitionException
 import utils
 from logging_setup import logger
-from tabulate import tabulate as tab
-from data_source import TwentyNewsgroupView, BBCSportsView, ReutersView, WEBKBView
 import numpy as np
 import json
 from datetime import datetime
 from time import perf_counter
 from math import ceil
-from scoop import futures, shared
 from itertools import product
 import importlib
+from multiprocessing import Pool, set_start_method
+import os
 
-def scoop_perform_single_run(params):
+def perform_single_run(params):
     """
     executes a single run by parsing and evaluating the expressions in params.
     :param params: list with factors and parameters. E.g. (intK, strMethodClassWithArgs, strDatasetClass)
     :return: a dict with the results obtained for all the runs and for each view of the DSet.
     """
-    datapath = shared.getConst("datapath")
-    initial_seed = shared.getConst("initial_seed")
     np.random.seed(initial_seed)
-    nruns = shared.getConst("nruns")
-
     logger.debug("parallel run {0}".format(params))
 
     # parsing the parameters
@@ -108,29 +103,45 @@ def scoop_perform_single_run(params):
     return results_per_run
 
 
+def initializer(arg0, arg1, arg2):
+    global datapath
+    datapath = arg0
+    global initial_seed
+    initial_seed = arg1
+    global nruns
+    nruns = arg2
+
+
 
 if __name__ == '__main__':
-    #data = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
+    # data = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
     # data = "D:/Google Drive/Research - Multiview and Collaborative Clustering/data"
-    #shared.setConst(datapath="C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data")
-    shared.setConst(datapath="data")
-    shared.setConst(initial_seed=1000982)
-    shared.setConst(nruns=10)
+
+    set_start_method("spawn")
+
+    datapath="data"
+    #datapath = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
+    initial_seed=1000982
+    nruns=10
 
     k_values = [3, 6, 12, 24, 48]
     #k_values = [3, 6]
-    #methods = ["NCF", "NCFwR:number_random_partitions=10", "NCFwR:number_random_partitions=20"]
-    #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
+
     methods = ["NCF", "NCFwR:number_random_partitions=10", "NCFwR:number_random_partitions=20",
                "NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60",
                "NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
+    #methods = ["NCF", "NCFwR:number_random_partitions=10"]
+
     datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
+    #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
+
     computation_lst = list(product(*[k_values, methods, datasources]))
 
     start_time = perf_counter()
     logger.debug("Starting parallel procedure...")
 
-    result_lst = list(futures.map(scoop_perform_single_run, computation_lst))
+    with Pool(os.cpu_count(), initializer, (datapath, initial_seed, nruns)) as p:
+        result_lst = p.map(perform_single_run, computation_lst)
 
     # storage routines
     end_time = perf_counter()

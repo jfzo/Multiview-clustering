@@ -1,14 +1,5 @@
-import logging
 from logging_setup import logger
-
 from sklearn.metrics import confusion_matrix
-import numpy as np
-from sklearn.cluster import MiniBatchKMeans, KMeans
-from sklearn import metrics
-from sklearn import preprocessing
-import csv
-import scipy.sparse
-import random
 
 
 def repairCorrelative(A):
@@ -315,7 +306,7 @@ if __name__ == '__main__':
     from tabulate import tabulate, tabulate_formats
     #print(random_partition(5, 10))
     #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
-    R = json.load(open("RES_Jul282020.234139_49secs.json"))
+    R = json.load(open("RES_Jul292020.115526_110secs.json"))
     flat_results = flat_performance_dict(R, report_relative=True)
     """
     ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
