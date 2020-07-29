@@ -54,9 +54,8 @@ if __name__ == "__main__":
                            NCFwR(number_random_partitions=60, seed=seed),
                            NCFwR(number_random_partitions=80, seed=seed),
                            NCFwR(number_random_partitions=100, seed=seed)]:
-
+                ## start
                 met_name = met_op.getName()
-                #for met_name, met_op in zip(["NCF", "NCFwR"], [NCF(), NCFwR(number_random_partitions=n_rnd_part, seed=seed)]):
 
                 if not met_name in results:
                     results[met_name] = {}
@@ -101,6 +100,7 @@ if __name__ == "__main__":
                         logger.debug("Purity: %f" % (consensus_P))
                     except BadSourcePartitionException as e:
                         logger.error(e)
+                ## end.-
 
     # storage routines
     end_time = perf_counter()

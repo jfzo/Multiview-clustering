@@ -36,10 +36,10 @@ def compute_solutions_complexity(S1, S2, K1, K2, labels=None):
     # K(S1 | S2)
     # TODO: Normalize labels both solutions to be in ranges [0,K1[ and [0,K2[ respectively.
     if not check_correlative_cluster_labels(S1):
-        logger.debug("reparing non correlative label partitions %s" % (S1))
+        logger.debug("reparing non correlative label partitions {0}".format(S1))
         S1 = repairCorrelative(S1)
     if not check_correlative_cluster_labels(S2):
-        logger.debug("reparing non correlative label partitions %s" % (S2))
+        logger.debug("reparing non correlative label partitions {0}".format(S2))
         S2 = repairCorrelative(S2)
     
     #cnf_matrix = confusion_matrix(S2, S1) # y_true, y_pred
@@ -246,19 +246,25 @@ def flat_performance_dict(results, report_relative = False):
     output = {}
     for M in results.keys():
         for DS in results[M].keys():
+            ov_max_purity = -float("inf")
+            ov_min_entropy = float("inf")
             for V in results[M][DS].keys():
-                #entry_name = "%s_%s_%s_k_%d" % (M,V, DS, results[M][DS][V]['K'])
-                entry_name = "%s_%s_%s_k_%s" % (M, V, DS, DS.split(":")[1])
+                if V == 'aveK_ranks':  # average complexity ranking Info (avoid its parsing)
+                    continue
+                entry_name = "{0}_{1}_{2}_k_{3}".format(M, V, DS, DS.split(":")[1])
                 output[entry_name] = {}
                 output[entry_name]['entropy'] = np.min( results[M][DS][V]['entropy'] )
                 output[entry_name]['purity'] = np.max(results[M][DS][V]['purity'])
                 ov_min_entropy = output[entry_name]['entropy'] if output[entry_name]['entropy'] < ov_min_entropy else ov_min_entropy
                 ov_max_purity = output[entry_name]['purity'] if output[entry_name]['purity'] > ov_max_purity else ov_max_purity
-    #output["min_entropy"] = ov_min_entropy
-    #output["max_purity"] = ov_max_purity
-    if report_relative:
-        return dict([(k, {'entropy': values['entropy'] / ov_min_entropy,
-                          'purity': ov_max_purity / values['purity']}) for k, values in output.items()])
+            # relative Perf. for all these views
+            if report_relative:
+                for V in results[M][DS].keys():
+                    if V == 'aveK_ranks': # average complexity ranking Info (avoid its parsing)
+                        continue
+                    entry_name = "{0}_{1}_{2}_k_{3}".format(M, V, DS, DS.split(":")[1])
+                    output[entry_name]['entropy'] = output[entry_name]['entropy'] / ov_min_entropy
+                    output[entry_name]['purity'] = ov_max_purity / output[entry_name]['purity']
 
     return output
 
@@ -306,10 +312,20 @@ def tab_from_flat(flat_results, measure):
 if __name__ == '__main__':
     import json
     import numpy as np
-    from tabulate import tabulate
+    from tabulate import tabulate, tabulate_formats
     #print(random_partition(5, 10))
-    R = json.load(open("RES_Jul272020.215706_710secs.json"))
+    #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
+    R = json.load(open("RES_Jul282020.234139_49secs.json"))
     flat_results = flat_performance_dict(R, report_relative=True)
-    cols, tb_data = tab_from_flat(flat_results, measure='entropy')
-    print(tabulate(tb_data, headers=cols))
+    """
+    ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
+    'mediawiki', 'moinmoin', 'orgtbl', 'pipe', 'plain', 'presto', 'pretty', 'psql', 'rst', 
+    'simple', 'textile', 'tsv', 'youtrack']
+    """
+    cols, tb_data = tab_from_flat(flat_results, measure='purity')
+    print("PURITY")
+    print(tabulate(tb_data, headers=cols, tablefmt="rst"))
 
+    cols, tb_data = tab_from_flat(flat_results, measure='entropy')
+    print("ENTROPY")
+    print(tabulate(tb_data, headers=cols, tablefmt="rst"))

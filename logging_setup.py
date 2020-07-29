@@ -1,9 +1,12 @@
 import logging
+from datetime import datetime
 
 logger = logging.getLogger('NCF clustering')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
-fh = logging.FileHandler("ncf_output.log", mode='w')
+now = datetime.now()
+outputfile = "LOG_{0}.log".format(now.strftime("%b%d%Y.%H%M%S"))
+fh = logging.FileHandler(outputfile, mode='w')
 fh.setLevel(logging.DEBUG)
 # create console handler with a higher log level
 ch = logging.StreamHandler()

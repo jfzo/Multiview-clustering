@@ -5,20 +5,32 @@ from logging_setup import logger
 from utils import *
 
 class NCFwR(object):
-    def __init__(self, number_random_partitions=50, seed: int = 1):
+    def __init__(self, *args, **kwargs):
         """
-        input_partitions: Dictionary with 
-        partition-name:list of cluster assignments.
+        Necessary for using in an automatic execution procedure
+        :param dict_args: dict with argument names as keys and values.
         """
+        self.N_rnd=50
+        self.seed = 1
+        if "args" in kwargs:
+            dict_args = kwargs["args"]
+            logger.debug("NCFwR params:{0}".format(dict_args))
+            if "number_random_partitions" in dict_args:
+                self.N_rnd = dict_args["number_random_partitions"]
+            if "seed" in dict_args:
+                self.seed = dict_args["seed"]
+
         self.logger = logger
-        self.__method_name = "NCFwR#%d" % (number_random_partitions)
-        logger.debug("Starting %s..." % (self.__method_name))
-        self.seed = seed
+        logger.debug("Setting the name")
+        self.__method_name = "NCFwR#{0}".format( self.N_rnd)
+        logger.debug("Starting {0}...".format(self.__method_name))
+
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
-        #logger.debug(str(input_partitions.keys()))
-        self.N_rnd = number_random_partitions
+        # logger.debug(str(input_partitions.keys()))
         self.Pi = None
+        self.complexity_rank = None
+
 
     def getName(self):
         return self.__method_name
@@ -54,8 +66,9 @@ class NCFwR(object):
         # for each view, the average complexity against all random clusterings is computed.
         ave_complexity = [np.mean([compute_solutions_complexity(self.Pi[j], rnd_p[i], K[j], kmax)[2] for i in range(self.N_rnd)]) for j in range(m)]
         # if ave_complexity[i] > ave_complexity[j] => view_i has more information thant view_j, thus it is ranked higher
-        logger.debug("Average Complexities under #rndcst=%d" % (self.N_rnd))
-        logger.debug("%s" % (ave_complexity) )
+        #logger.debug("Average Complexities under #rndcst={0}".format(self.N_rnd))
+        #logger.debug("{0}".format(ave_complexity) )
+        self.complexity_rank = np.argsort(ave_complexity) # sorts ave complexities in ascending order (recall that the higher the farther from random)
         ######
         # Distance matrix computation
         #
@@ -66,9 +79,9 @@ class NCFwR(object):
                 _,_,val1 = compute_solutions_complexity(self.Pi[i], self.Pi[j], K[i], K[j])
                 _,_,val2 = compute_solutions_complexity(self.Pi[j], self.Pi[i], K[j], K[i])
                 #if(len(set(e1.keys()) & set(e2.keys())) != len(set(e1.keys()) | set(e2.keys())) ):
-                #    print("C1:%d C2:%d"%(i,j))
+                #    print("C1:{0} C2:{0}".format(i,j))
                 #else:
-                #    print("*C1:%d C2:%d"%(i,j))
+                #    print("*C1:{0} C2:{0}".format(i,j))
                 Aff[i,j] = val1 + val2
                 Aff[j,i] = Aff[i,j]
         #print(Aff)
@@ -86,7 +99,7 @@ class NCFwR(object):
             #mindist_partitions = np.argmin(np.min(Aff, axis=1)) # row whose min distance is the global min.
             #row_min_dist = mindist_part_for_rows[mindist_partitions] # combining the previous commands, obtain the least distant views to merge.
 
-            #print("merge views %d and %d"%(mindist_partitions, row_min_dist) )
+            #print("merge views {0} and {0}".format(mindist_partitions, row_min_dist) )
             #merging_dist = np.min(np.min(Aff, axis=1))
             #newclustering, exceptions, memberships_ = merge(mindist_partitions, row_min_dist, self.Pi, K, step_memberships, alpha=0.1)
 
@@ -103,10 +116,10 @@ class NCFwR(object):
             #newclustering, exceptions = merge(optimal_row, optimal_col, self.Pi, K, exception_weights, alpha=0.1)
             # now the ranked version
             if ave_complexity[optimal_row] > ave_complexity[optimal_col]:
-                logger.debug("Merging views %d with %d" % (optimal_row, optimal_col)) 
+                logger.debug("Merging views {0} with {0}".format(optimal_row, optimal_col))
                 newclustering, exceptions = self.merge(optimal_row, optimal_col, K, exception_weights, alpha=0.1)            
             else:
-                logger.debug("Merging views %d with %d" % (optimal_col, optimal_row))             
+                logger.debug("Merging views {0} with {0}".format(optimal_col, optimal_row))
                 newclustering, exceptions = self.merge(optimal_col, optimal_row, K, exception_weights, alpha=0.1)
             
             #step_memberships.append(memberships_)
@@ -212,11 +225,11 @@ class NCFwR(object):
 
         merge_ops = dict([(u,set()) for u in range(len(r1))])
         for u in range(len(r1)):
-            #print("MERGE(%d, %d)"%(u, r1[u]))
+            #print("MERGE({0}, {0})".format(u, r1[u]))
             merge_ops[u].add(r1[u])
 
         for v in range(len(r2)):
-            #print("MERGE(%d, %d)"%(v, r2[v]))
+            #print("MERGE({0}, {0})".format(v, r2[v]))
             merge_ops[r2[v]].add(v)
         logger.debug(merge_ops)
         
@@ -289,12 +302,12 @@ class BadSourcePartitionException(Exception):
         self.e = e
 
     def __str__(self):
-        return "Empty merging for view #%d ~ %s" % (self.e, self.s)
+        return "Empty merging for view #{0} ~ {0}".format(self.e, self.s)
 
 
 
 class NCF(object):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         """
         input_partitions: Dictionary with
         partition-name:list of cluster assignments.
@@ -302,7 +315,7 @@ class NCF(object):
         # self.logger = logging.getLogger(__name__)
         self.logger = logger
         self.__method_name = "NCF"
-        logger.debug("Starting %s..." % (self.__method_name))
+        logger.debug("Starting {0}...".format(self.__method_name))
         # capital Pi: list of partitionings.
         # A partitioning is a set of integers (data point id)
         # logger.debug(str(input_partitions.keys()))
@@ -342,9 +355,9 @@ class NCF(object):
                 _, _, val1 = compute_solutions_complexity(self.Pi[i], self.Pi[j], K[i], K[j])
                 _, _, val2 = compute_solutions_complexity(self.Pi[j], self.Pi[i], K[j], K[i])
                 # if(len(set(e1.keys()) & set(e2.keys())) != len(set(e1.keys()) | set(e2.keys())) ):
-                #    print("C1:%d C2:%d"%(i,j))
+                #    print("C1:{0} C2:{0}".format(i,j))
                 # else:
-                #    print("*C1:%d C2:%d"%(i,j))
+                #    print("*C1:{0} C2:{0}".format(i,j))
                 Aff[i, j] = val1 + val2
                 Aff[j, i] = Aff[i, j]
         # print(Aff)
@@ -362,7 +375,7 @@ class NCF(object):
             # mindist_partitions = np.argmin(np.min(Aff, axis=1)) # row whose min distance is the global min.
             # row_min_dist = mindist_part_for_rows[mindist_partitions] # combining the previous commands, obtain the least distant views to merge.
 
-            # print("merge views %d and %d"%(mindist_partitions, row_min_dist) )
+            # print("merge views {0} and {0}".format(mindist_partitions, row_min_dist) )
             # merging_dist = np.min(np.min(Aff, axis=1))
             # newclustering, exceptions, memberships_ = merge(mindist_partitions, row_min_dist, self.Pi, K, step_memberships, alpha=0.1)
 
@@ -378,7 +391,7 @@ class NCF(object):
 
 
             #newclustering, exceptions = merge(optimal_row, optimal_col, Pi, K, exception_weights, alpha=0.1)
-            logger.debug("Merging views %d with %d" % (optimal_row, optimal_col))
+            logger.debug("Merging views {0} with {0}".format(optimal_row, optimal_col))
             newclustering, exceptions = self.merge(optimal_row, optimal_col, K, exception_weights, alpha=0.1)
 
             # step_memberships.append(memberships_)
@@ -481,11 +494,11 @@ class NCF(object):
 
         merge_ops = dict([(u, set()) for u in range(len(r1))])
         for u in range(len(r1)):
-            # print("MERGE(%d, %d)"%(u, r1[u]))
+            # print("MERGE({0}, {0})".format(u, r1[u]))
             merge_ops[u].add(r1[u])
 
         for v in range(len(r2)):
-            # print("MERGE(%d, %d)"%(v, r2[v]))
+            # print("MERGE({0}, {0})".format(v, r2[v]))
             merge_ops[r2[v]].add(v)
         logger.debug(merge_ops)
 
