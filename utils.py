@@ -1,3 +1,5 @@
+import itertools
+from scipy.stats import kendalltau
 from logging_setup import logger
 from sklearn.metrics import confusion_matrix
 import numpy as np
@@ -68,9 +70,9 @@ def fix_cluster_labels(cl):
 def random_partition(Kmax, n):
     """
     Generates a assignment of `n` objects into a random number of clusters.
-    Each objects is assigned to a cluster id in [0, Kmax] (extremes included).
+    Each objects is assigned to a cluster id in [0, Kmax[.
     """
-    rnd_c = [np.random.randint(0, Kmax + 1) for i in range(n)]
+    rnd_c = [np.random.randint(0, Kmax) for i in range(n)]
     
     ord_c = np.unique(rnd_c)
     rnd_c = np.array([np.where(ord_c == i)[0][0] for i in rnd_c])
@@ -225,6 +227,20 @@ def Entropy(labels_pred, labels_true):
         sum_E += (n_r/n)*ce_r
     return sum_E
 
+def complexity_rank_behavior(results):
+    output = {}
+    for M in results.keys():
+        output[M] = {}
+        for DS in results[M].keys():
+            if 'aveK_ranks' in results[M][DS]:
+                K = results[M][DS]['consensus']["K"]
+                # results[M][DS]['aveK_ranks'] is a list of str
+                rank_lists = [r_str.split(",") for r_str in results[M][DS]['aveK_ranks']]
+                taus = [kendalltau(a,b)[0] for a,b in itertools.combinations(rank_lists, 2)]
+                ave_t, sd_t = np.mean(taus), np.std(taus)
+                output[M][DS] = {'k':K, 'ave_tau':ave_t, 'sd_tau':sd_t}
+    return output
+
 def flat_performance_dict(results, report_relative = False):
     """
     Generates a dictionary with each method and view along with the best results for that method over that view.
@@ -306,7 +322,9 @@ if __name__ == '__main__':
     from tabulate import tabulate, tabulate_formats
     #print(random_partition(5, 10))
     #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
-    R = json.load(open("RES_Jul292020.115526_110secs.json"))
+    R = json.load(open("gcloud-inst-results-29.07.20/RES_Jul292020.180537_3328secs.json"))
+
+    """
     flat_results = flat_performance_dict(R, report_relative=True)
     """
     ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
@@ -320,3 +338,5 @@ if __name__ == '__main__':
     cols, tb_data = tab_from_flat(flat_results, measure='entropy')
     print("ENTROPY")
     print(tabulate(tb_data, headers=cols, tablefmt="rst"))
+    """
+    print(complexity_rank_behavior(R))
