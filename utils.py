@@ -236,9 +236,10 @@ def complexity_rank_behavior(results):
                 K = results[M][DS]['consensus']["K"]
                 # results[M][DS]['aveK_ranks'] is a list of str
                 rank_lists = [r_str.split(",") for r_str in results[M][DS]['aveK_ranks']]
+                rank_lists_str = str([r_str for r_str in results[M][DS]['aveK_ranks']]).replace("[","").replace("]","").replace("',","' ").replace("'","")
                 taus = [kendalltau(a,b)[0] for a,b in itertools.combinations(rank_lists, 2)]
                 ave_t, sd_t = np.mean(taus), np.std(taus)
-                output[M][DS] = {'k':K, 'ave_tau':ave_t, 'sd_tau':sd_t}
+                output[M][DS] = {'k':K, 'ave_tau':ave_t, 'sd_tau':sd_t, 'ranks_str':rank_lists_str}
     return output
 
 def flat_performance_dict(results, report_relative = False):
@@ -282,8 +283,6 @@ def tab_from_flat(flat_results, measure):
     :param flat_results: flat dictionary built by 'flat_performance_dict' function.
     :return: A tuple with the column names and a list of lists ready to be displayed with tabulate package.
     """
-
-
     cols = ["k", "dataset"]
     methods = {}
     for k in flat_results:
@@ -321,10 +320,12 @@ if __name__ == '__main__':
     import numpy as np
     from tabulate import tabulate, tabulate_formats
     #print(random_partition(5, 10))
+    path = "D:\Google Drive\Research - Multiview and Collaborative Clustering\code\Multiview-clustering\gcloud-inst-results-29.07.20"
+    path = path.replace("\\", "/")
     #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
-    R = json.load(open("gcloud-inst-results-29.07.20/RES_Jul292020.180537_3328secs.json"))
+    R = json.load(open("{0}/{1}".format(path, "RES_Jul302020.020008_7130secs.json")) )
 
-    """
+
     flat_results = flat_performance_dict(R, report_relative=True)
     """
     ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
@@ -333,10 +334,18 @@ if __name__ == '__main__':
     """
     cols, tb_data = tab_from_flat(flat_results, measure='purity')
     print("PURITY")
-    print(tabulate(tb_data, headers=cols, tablefmt="rst"))
+    print(tabulate(tb_data, headers=cols, tablefmt="plain"))
 
     cols, tb_data = tab_from_flat(flat_results, measure='entropy')
     print("ENTROPY")
-    print(tabulate(tb_data, headers=cols, tablefmt="rst"))
-    """
-    print(complexity_rank_behavior(R))
+    print(tabulate(tb_data, headers=cols, tablefmt="plain"))
+
+    comp_rank_b = complexity_rank_behavior(R)
+    #print(comp_rank_b)
+    flat_comp = [('method',"nrnd",'dataset','k','ave-tau','sd-tau','ranks')]
+    for M in comp_rank_b:
+        for D in comp_rank_b[M]:
+            flat_comp.append((M.split("#")[0],M.split("#")[1],D.split(":")[0],D.split(":")[1],comp_rank_b[M][D]['ave_tau'],comp_rank_b[M][D]['sd_tau'],comp_rank_b[M][D]['ranks_str']))
+
+    #print(flat_comp)
+    print(tabulate(flat_comp[1:], headers=flat_comp[0], tablefmt="plain"))
