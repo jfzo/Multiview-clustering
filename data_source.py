@@ -128,6 +128,51 @@ class DataViewGenerator(metaclass=ABCMeta):
 
 
 """
+BBC
+"""
+class BBC(DataViewGenerator):
+    def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
+        self.logger = logger
+        self.seed = seed
+
+        data_npz = np.load(dataset_dir, allow_pickle=True)
+        # bbc3 = np.load('bbc_data_seg3.npz', allow_pickle=True)
+        # bbc4 = np.load('bbc_data_seg4.npz', allow_pickle=True)
+        # bbc2['X']
+        # bbc2['Y']
+        nviews = data_npz['X'].shape[1] # depends on the bbc segment
+        self.data_views = {}
+        for vi in range(nviews):
+            self.data_views['v{0}'.format(vi)] = data_npz['X'][0, vi]
+
+        self.views = {}
+        self.labels = data_npz['Y']
+        self.name = 'BBC-seg{0}'.format(nviews)
+        if (isinstance(NCLUSTERS, int)):
+            # NCLUSTERS = {'tfidf':NCLUSTERS, 'lda':NCLUSTERS, 'skipgram':NCLUSTERS}
+            self.NCLUSTERS = {}
+            for v in self.data_views:
+                # if not v in ["labels","dataset"]:
+                self.NCLUSTERS[v] = NCLUSTERS
+        elif isinstance(NCLUSTERS, dict):
+            self.NCLUSTERS = NCLUSTERS
+        else:
+            raise NotImplemented
+        self.__build_views__()
+
+    def __build_views__(self):
+        np.random.seed(self.seed)
+        #random_state = np.random.randint(2 ** 16 - 1)
+        random_state = self.seed
+
+        for viewname in self.data_views:
+            X = self.data_views[viewname] # this is a sparse matrix!
+            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
+            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
+            km_labels = km.fit_predict(X)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+
+"""
 Handwritten
 """
 class Handwritten(DataViewGenerator):
@@ -397,26 +442,26 @@ class WEBKBView(DataViewGenerator):
 
 
 if __name__ == '__main2__':
-    rt5 = Reuters5("D:/mvdata/Reuters.mat", 6, 101)
+    rt5 = Reuters5("D:/multi-view-data/Reuters.mat", 6, 101)
     rt5.create_view(10)
     assess_datasource_views(rt5)
 
-    hwt = Handwritten("D:/mvdata/handwritten.mat", 10, 101)
+    hwt = Handwritten("D:/multi-view-data/handwritten.mat", 10, 101)
     hwt.create_view(5)
     hwt.create_view(15)
     assess_datasource_views(hwt)
 
-    ct7 = CaltechN("D:/mvdata/Caltech101-7.mat", 7, 101)
+    ct7 = CaltechN("D:/multi-view-data/Caltech101-7.mat", 7, 101)
     ct7.create_view(3)
     ct7.create_view(10)
     assess_datasource_views(ct7)
 
-    ct20 = CaltechN("D:/mvdata/Caltech101-20.mat", 20, 101)
+    ct20 = CaltechN("D:/multi-view-data/Caltech101-20.mat", 20, 101)
     ct20.create_view(10)
     ct20.create_view(15)
     assess_datasource_views(ct20)
 
-    nusw = NusWide("D:/mvdata/NUSWIDEOBJ.mat", 31, 101)
+    nusw = NusWide("D:/multi-view-data/NUSWIDEOBJ.mat", 31, 101)
     nusw.create_view(15)
     nusw.create_view(25)
     assess_datasource_views(nusw)
@@ -434,10 +479,53 @@ def obtain_doc_and_column_indexes(docsFname):
             doc_name = ln.strip()
             doc_list.append(doc_name)
             doc_colums[doc_name] = cnt
+            cnt += 1
     return {'docList':doc_list, 'docCol':doc_colums}
 
-if __name__ == '__main__':
-    bbc_datadir = 'D:/mvdata/bbc-segment/bbc/'
+
+def delete_empty_cols(csc_mat):
+    """
+    Very costful solution to the removal of features not present in the final document-term matrices.
+    :param csc_mat: sparse matrix
+    :return: Returns a CSR matrix identical to the one given as input but excluding the null columns.
+    """
+    cols_to_del = []
+    for i in range(csc_mat.shape[1]):
+        if csc_mat[:, i].nnz == 0:
+            cols_to_del.append(i)
+
+    cols_to_del.reverse()
+
+    denseMat = csc_mat.toarray()
+    for col in cols_to_del:
+        denseMat = np.delete(denseMat, col, 1)
+
+    return scipy.sparse.csr_matrix(denseMat)
+
+
+def preprocess_bbc_data(bbc_datadir):
+    """
+
+    :param bbc_datadir: Location of segments
+    :return:
+    """
+    # obtaining doc labels
+    doc_label = dict()
+    label_cnt = 0
+    with open('%sbbc.clist' % bbc_datadir) as fp:
+        while True:
+            ln = fp.readline().strip()
+            if not ln:
+                break
+            partsInLn = ln.split(":")
+            label = partsInLn[0].strip()
+            labeledDocs = partsInLn[1].strip().split(",")
+            for doc in labeledDocs:
+                #doc_label[doc] = label
+                doc_label[doc.strip()] = label_cnt
+            label_cnt += 1
+
+
     bbc_mat12_docs = obtain_doc_and_column_indexes('%sbbc_seg1of2.docs' % bbc_datadir)
     bbc_mat22_docs = obtain_doc_and_column_indexes('%sbbc_seg2of2.docs' % bbc_datadir)
 
@@ -453,14 +541,15 @@ if __name__ == '__main__':
     print('bbc-seg2:')
     print('view 1:',len(bbc_mat12_docs['docList']))
     print('view 2:', len(bbc_mat22_docs['docList']))
-    bbc_seg2_commons = set(bbc_mat12_docs['docList']) & set(bbc_mat22_docs['docList'])
+    bbc_seg2_commons = list( set(bbc_mat12_docs['docList']) & set(bbc_mat22_docs['docList']) )
     print('common:', len(bbc_seg2_commons)) # docs in both views
+
 
     print('\nbbc-seg3:')
     print('view 1:', len(bbc_mat13_docs['docList']))
     print('view 2:', len(bbc_mat23_docs['docList']))
     print('view 3:', len(bbc_mat33_docs['docList']))
-    bbc_seg3_commons = set(bbc_mat13_docs['docList']) & set(bbc_mat23_docs['docList']) & set(bbc_mat33_docs['docList'])
+    bbc_seg3_commons = list( set(bbc_mat13_docs['docList']) & set(bbc_mat23_docs['docList']) & set(bbc_mat33_docs['docList']) )
     print('common:', len(bbc_seg3_commons))  # docs in both views
 
     print('\nbbc-seg4:')
@@ -468,21 +557,22 @@ if __name__ == '__main__':
     print('view 2:',len(bbc_mat24_docs['docList']))
     print('view 3:',len(bbc_mat34_docs['docList']))
     print('view 4:',len(bbc_mat44_docs['docList']))
-    bbc_seg4_commons = set(bbc_mat14_docs['docList']) & set(bbc_mat24_docs['docList']) & set(bbc_mat34_docs['docList']) & set(
-        bbc_mat44_docs['docList'])
+    bbc_seg4_commons = list( set(bbc_mat14_docs['docList']) & set(bbc_mat24_docs['docList']) & set(bbc_mat34_docs['docList']) & set(
+        bbc_mat44_docs['docList']) )
     print('common:', len(bbc_seg4_commons))  # docs in both views
 
-    # Data matrices with  term frequencies
+    ## Data matrices with  term frequencies
+    #
     bbc_mat12 = scipy.io.mmread('%sbbc_seg1of2.mtx' % bbc_datadir).tocsc()
     bbc_mat22 = scipy.io.mmread('%sbbc_seg2of2.mtx' % bbc_datadir).tocsc()
     v1_selected = np.array([bbc_mat12_docs['docCol'][doc] for doc in bbc_seg2_commons])
     v2_selected = np.array([bbc_mat22_docs['docCol'][doc] for doc in bbc_seg2_commons])
+    seg2_labels = np.array([doc_label[doc] for doc in bbc_seg2_commons])
     bbc_mat12_curated = bbc_mat12[:,v1_selected]
     bbc_mat22_curated = bbc_mat22[:, v2_selected]
     print('\nBBC seg2:')
     print("Shape V1:",bbc_mat12_curated.shape[0], bbc_mat12_curated.shape[1])
     print("Shape V2:", bbc_mat22_curated.shape[0], bbc_mat22_curated.shape[1])
-
 
     bbc_mat13 = scipy.io.mmread('%sbbc_seg1of3.mtx' % bbc_datadir).tocsc()
     bbc_mat23 = scipy.io.mmread('%sbbc_seg2of3.mtx' % bbc_datadir).tocsc()
@@ -490,6 +580,7 @@ if __name__ == '__main__':
     v1_selected = np.array([bbc_mat13_docs['docCol'][doc] for doc in bbc_seg3_commons])
     v2_selected = np.array([bbc_mat23_docs['docCol'][doc] for doc in bbc_seg3_commons])
     v3_selected = np.array([bbc_mat33_docs['docCol'][doc] for doc in bbc_seg3_commons])
+    seg3_labels = np.array([doc_label[doc] for doc in bbc_seg3_commons])
     bbc_mat13_curated = bbc_mat13[:, v1_selected]
     bbc_mat23_curated = bbc_mat23[:, v2_selected]
     bbc_mat33_curated = bbc_mat33[:, v3_selected]
@@ -507,6 +598,7 @@ if __name__ == '__main__':
     v2_selected = np.array([bbc_mat24_docs['docCol'][doc] for doc in bbc_seg4_commons])
     v3_selected = np.array([bbc_mat34_docs['docCol'][doc] for doc in bbc_seg4_commons])
     v4_selected = np.array([bbc_mat44_docs['docCol'][doc] for doc in bbc_seg4_commons])
+    seg4_labels = np.array([doc_label[doc] for doc in bbc_seg4_commons])
     bbc_mat14_curated = bbc_mat14[:, v1_selected]
     bbc_mat24_curated = bbc_mat24[:, v2_selected]
     bbc_mat34_curated = bbc_mat34[:, v3_selected]
@@ -516,3 +608,37 @@ if __name__ == '__main__':
     print("Shape V2:", bbc_mat24_curated.shape[0], bbc_mat24_curated.shape[1])
     print("Shape V3:", bbc_mat34_curated.shape[0], bbc_mat34_curated.shape[1])
     print("Shape V4:", bbc_mat44_curated.shape[0], bbc_mat44_curated.shape[1])
+
+    # data structure to store all BBC data views
+    bbc_data = {'seg-2':{'X':np.ndarray((1,2), dtype=np.ndarray),'Y':seg2_labels, 'docs':bbc_seg2_commons},
+                'seg-3':{'X':np.ndarray((1,3), dtype=np.ndarray),'Y':seg3_labels, 'docs':bbc_seg3_commons},
+                'seg-4':{'X':np.ndarray((1,4), dtype=np.ndarray),'Y':seg4_labels, 'docs':bbc_seg4_commons}
+                }
+
+    bbc_data['seg-2']['X'][0, 0] = delete_empty_cols(bbc_mat12_curated.transpose())
+    bbc_data['seg-2']['X'][0, 1] = delete_empty_cols(bbc_mat22_curated.transpose())
+
+    bbc_data['seg-3']['X'][0, 0] = delete_empty_cols(bbc_mat13_curated.transpose())
+    bbc_data['seg-3']['X'][0, 1] = delete_empty_cols(bbc_mat23_curated.transpose())
+    bbc_data['seg-3']['X'][0, 2] = delete_empty_cols(bbc_mat33_curated.transpose())
+
+    bbc_data['seg-4']['X'][0, 0] = delete_empty_cols(bbc_mat14_curated.transpose())
+    bbc_data['seg-4']['X'][0, 1] = delete_empty_cols(bbc_mat24_curated.transpose())
+    bbc_data['seg-4']['X'][0, 2] = delete_empty_cols(bbc_mat34_curated.transpose())
+    bbc_data['seg-4']['X'][0, 3] = delete_empty_cols(bbc_mat44_curated.transpose())
+
+    return bbc_data
+
+if __name__ == '__main__':
+    bbc_data_views = preprocess_bbc_data('D:/multi-view-data/bbc-segment/bbc/')
+    #np.savez('bbc_data.npz', **bbc_data_views, allow_pickle=True)
+    np.savez('bbc_data_seg2.npz', **bbc_data_views['seg-2'], allow_pickle=True)
+    np.savez('bbc_data_seg3.npz', **bbc_data_views['seg-3'], allow_pickle=True)
+    np.savez('bbc_data_seg4.npz', **bbc_data_views['seg-4'], allow_pickle=True)
+
+    # how to open
+    #bbc2 = np.load('bbc_data_seg2.npz', allow_pickle=True)
+    #bbc3 = np.load('bbc_data_seg3.npz', allow_pickle=True)
+    #bbc4 = np.load('bbc_data_seg4.npz', allow_pickle=True)
+    #bbc2['X']
+    #bbc2['Y']
