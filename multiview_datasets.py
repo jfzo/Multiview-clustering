@@ -1,5 +1,7 @@
-from data_source import DataViewGenerator
+import logging
 from logging_setup import logger
+
+from data_source import DataViewGenerator
 
 import numpy as np
 from sklearn import preprocessing
@@ -16,6 +18,7 @@ import sklearn.metrics as evalfns
 """
 BBC
 """
+
 class BBC(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
@@ -58,6 +61,21 @@ class BBC(DataViewGenerator):
             km_labels = km.fit_predict(X)
             self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
 
+class BBC_seg2(BBC):
+    def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
+        dataset_dir = dataset_dir + "/bbc_data_seg2.npz"
+        super(BBC_seg2, self).__init__(dataset_dir, NCLUSTERS, seed)
+
+class BBC_seg3(BBC):
+    def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
+        dataset_dir = dataset_dir + "/bbc_data_seg3.npz"
+        super(BBC_seg3, self).__init__(dataset_dir, NCLUSTERS, seed)
+
+class BBC_seg4(BBC):
+    def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
+        dataset_dir = dataset_dir + "/bbc_data_seg4.npz"
+        super(BBC_seg4, self).__init__(dataset_dir, NCLUSTERS, seed)
+
 """
 Caltech-7/20
 """
@@ -65,7 +83,7 @@ class CaltechN(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
         self.seed = seed
-        mlabData = loadmat(dataset_dir)
+        mlabData = loadmat(dataset_dir+"/Caltech101-7.mat")
         # self.name = self.__class__.__name__  # can be overrided if neccessary
         self.data_views = {"gabor":mlabData['X'][0,0],
                       "wm":mlabData['X'][0,1],
@@ -110,7 +128,7 @@ class NusWide(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
         self.seed = seed
-        mlabData = loadmat(dataset_dir)
+        mlabData = loadmat(dataset_dir+"/NUSWIDEOBJ.mat")
         # self.name = self.__class__.__name__  # can be overrided if neccessary
         self.data_views = {"ch":mlabData['X'][0,0],
                       "cm":mlabData['X'][0,1],
@@ -154,7 +172,7 @@ class Handwritten(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
         self.seed = seed
-        mlabData = loadmat(dataset_dir)
+        mlabData = loadmat(dataset_dir+"/handwritten.mat")
         # self.name = self.__class__.__name__  # can be overrided if neccessary
         self.data_views = {"pix":mlabData['X'][0,0],
                       "fou":mlabData['X'][0,1],
@@ -198,7 +216,7 @@ class Reuters5(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
         self.seed = seed
-        mlabData = loadmat(dataset_dir)
+        mlabData = loadmat(dataset_dir+"/Reuters.mat")
         # self.name = self.__class__.__name__  # can be overrided if neccessary
         self.data_views = {"english":mlabData['X'][0,0],
                       "france":mlabData['X'][0,1],
@@ -402,4 +420,5 @@ def preprocess_bbc_data(bbc_datadir):
 
 if __name__ == '__main__':
     #preprocess_bbc_data('D:/multi-view-data/bbc-segment/bbc/')
+    #preprocess_bbc_data('D:/Google Drive/Research - Multiview and Collaborative Clustering/data/bbc/')
     print("Main method execution...")

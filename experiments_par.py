@@ -44,7 +44,8 @@ def perform_single_run(params):
         argsDict[arg_name] = int(arg_val) # this must be specified in a more flexible way
     #logger.debug("Params parsed: %s" % (argsDict))
     # getting the required classes
-    ds_mod = importlib.import_module("data_source")
+    #ds_mod = importlib.import_module("data_source")
+    ds_mod = importlib.import_module("multiview_datasets")
     ds_class_ = getattr(ds_mod, params[2])
     met_op_mod = importlib.import_module("original_ncf")
     met_op_class_ = getattr(met_op_mod, met_op_str)
@@ -74,12 +75,13 @@ def perform_single_run(params):
             dsname_kval = "{0}:{1}".format(ds_inst.name, k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
             if not dsname_kval in results_per_run[met_name]:
                 results_per_run[met_name][dsname_kval] = {}
-                for viewname in ds_inst.data_views:
-                    results_per_run[met_name][dsname_kval][viewname] = {"K": ds_inst.NCLUSTERS[viewname], "entropy": [],
+                for viewname in ds_inst.get_views():
+                    ncusters_in_view = np.unique(ds_inst.get_views()[viewname])
+                    results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view, "entropy": [],
                                                                 "purity": []}
                 results_per_run[met_name][dsname_kval]["consensus"] = {"K": consensus_kval, "entropy": [], "purity": []}
 
-            for viewname in ds_inst.data_views:
+            for viewname in ds_inst.get_views():
                 v_E = utils.Entropy(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
                 v_P = utils.Purity(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
                 results_per_run[met_name][dsname_kval][viewname]["entropy"].append(v_E)
@@ -119,20 +121,22 @@ if __name__ == '__main__':
 
     set_start_method("spawn")
 
-    datapath="data"
-    #datapath = "C:/Users/juan/Insync/juan.zamora@pucv.cl/Google Drive/Research - Multiview and Collaborative Clustering/data"
+    #datapath="data"
+    datapath = "D:/mvdata"
     initial_seed=1000982
-    nruns=10
+    nruns=3#10
 
-    k_values = [3, 6, 12, 24, 48]
-    #k_values = [3, 6]
+    #k_values = [3, 6, 12, 24, 48]
+    k_values = [6]
 
-    methods = ["NCF", "NCFwR:number_random_partitions=10", "NCFwR:number_random_partitions=20",
-               "NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60",
-               "NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
+    methods = ["NCF", "NCFwR:number_random_partitions=10"]#, "NCFwR:number_random_partitions=20"],
+               #"NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60"]#,
+               #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
     #methods = ["NCF", "NCFwR:number_random_partitions=10"]
 
-    datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
+    #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
+    datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
+
     #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
@@ -162,10 +166,20 @@ if __name__ == '__main__':
             results[method] = {}
         if 'aveK_ranks' in ds_dict[datasrc]:
             ds_dict[datasrc]['aveK_ranks'] = [','.join(map(str,ranks)) for ranks in ds_dict[datasrc]['aveK_ranks']]
+
+        #logger.debug('--> ds_dict datasrc:{0} struct:{1}'.format(datasrc, ds_dict[datasrc]))
+        for v in ds_dict[datasrc]:
+            if 'K' in ds_dict[datasrc][v] and isinstance(ds_dict[datasrc][v]['K'], np.ndarray):
+                ds_dict[datasrc][v]['K'] = (ds_dict[datasrc][v]['K']).tolist()
+            #logger.debug("list of k:{0} --> {1}".format(ds_dict[datasrc][v]['K'], type(ds_dict[datasrc][v]['K'] )) )
+        #ds_dict[datasrc]['K'] = list(ds_dict[datasrc]['K'])
         results[method][datasrc] = ds_dict[datasrc]
 
     logger.info("Elapsed time {0:.3f} secs".format(end_time - start_time))
 
+    logger.debug('*************************')
+    logger.debug(results)
+    logger.debug('*************************')
     with open(outputfile, 'w') as fp:
         json.dump(results, fp)
     logger.info("Results stored into file {0}".format(outputfile))
