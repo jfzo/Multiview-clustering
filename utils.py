@@ -4,6 +4,26 @@ from logging_setup import logger
 from sklearn.metrics import confusion_matrix
 import numpy as np
 
+
+def checkExceptionList(A, epweights_A):
+    """
+    Checks if every point in exception_in_i and cluster label in existLbls_i
+    ... have an entry in  epweights_i .
+    >> checkExceptionList(self.Pi[i], exception_weights.get(i, {}) )
+    """
+    existLbls_A = np.unique(A[np.where(A > -1)])
+    exception_in_A = np.where(A == -1)[0]
+    issues2fix = []
+    for pt_i in exception_in_A: # foreach unfused point
+        issueFlag = False
+        for exsLbl in existLbls_A: # foreach available label
+            if not (pt_i, exsLbl) in epweights_A:
+                issueFlag = True
+        if issueFlag:
+            issues2fix.append(pt_i)
+    return issues2fix
+
+
 def repairCorrelative(A):
     arr_A = np.array(A)
     current_ids = np.unique(arr_A)
@@ -129,7 +149,7 @@ def max_agreement_partition(P, B):
     # obtain all the different labels in B(!= -1)
     available_labels = np.unique(B[np.where(B > -1)[0]])
     # for each label, obtain a set of points having that label in B and measure agreement
-    return np.argmax([agreement_measure(P, set(np.where(B == l)[0]) ) for l in available_labels] )
+    return available_labels[np.argmax([agreement_measure(P, set(np.where(B == l)[0]) ) for l in available_labels] )]
         
 
 def omega(pi_, p, A, epweights_A):
@@ -145,7 +165,7 @@ def omega(pi_, p, A, epweights_A):
     if A[p] != -1: 
         return agreement_measure(pi_, N_p_V(p, A))
     # otherwise...
-    Phi_A_pi = max_agreement_partition(pi_, A)
+    Phi_A_pi = max_agreement_partition(pi_, A) # max agreement partition in view A.
     
     #logger.debug(Phi_A_pi)
     #logger.debug(list(epweights_A.keys()))

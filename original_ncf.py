@@ -104,7 +104,7 @@ class NCFwR(object):
             #merging_dist = np.min(np.min(Aff, axis=1))
             #newclustering, exceptions, memberships_ = merge(mindist_partitions, row_min_dist, self.Pi, K, step_memberships, alpha=0.1)
 
-            optimal_col_per_row = np.argmin(Aff, axis=1) # for each row, which column presents the lowest distance
+            optimal_col_per_row = np.argmin(Aff, axis=1) # for each row, which column presents the lowest distance (BY ROW)
             optimal_val_per_row = np.min(Aff, axis=1)
             optimal_row = np.argmin(optimal_val_per_row) # row whose min distance is the global min.
             optimal_col = optimal_col_per_row[optimal_row] # combining the previous commands, obtain the least distant views to merge.
@@ -117,10 +117,10 @@ class NCFwR(object):
             #newclustering, exceptions = merge(optimal_row, optimal_col, self.Pi, K, exception_weights, alpha=0.1)
             # now the ranked version
             if ave_complexity[optimal_row] > ave_complexity[optimal_col]:
-                logger.debug("Merging views {0} with {0}".format(optimal_row, optimal_col))
+                logger.debug("Merging views {0} with {1}".format(optimal_row, optimal_col))
                 newclustering, exceptions = self.merge(optimal_row, optimal_col, K, exception_weights, alpha=0.1)            
             else:
-                logger.debug("Merging views {0} with {0}".format(optimal_col, optimal_row))
+                logger.debug("Merging views {0} with {1}".format(optimal_col, optimal_row))
                 newclustering, exceptions = self.merge(optimal_col, optimal_row, K, exception_weights, alpha=0.1)
             
             #step_memberships.append(memberships_)
@@ -238,7 +238,7 @@ class NCFwR(object):
         #new_partitioning = np.zeros(self.Pi[i].shape, dtype=np.int32)
         new_partitioning = np.repeat(-1, self.Pi[i].shape[0]) # By default each pt is marked.
         cluster_id = 0 # Cluster ids start from 0
-        overall_candidates = set()
+        #overall_candidates = set()
         
         for e,s in merge_ops.items():
             # candidate points to merge initially
@@ -255,13 +255,12 @@ class NCFwR(object):
                 c |= (set_vie & set_vjp) # adding intersection to the new cluster
                 a = set_vie - set_vjp # the remaining items to merge for next p's in s
                 # Update set_vjp to (set_vjp - set_vie ) to use in further (e,s)            
-                cache[p] = set_vjp - set_vie 
+                cache[p] = set_vjp - set_vie
                 set_vie = set(a)
 
             # when there are no common data points, the merge generates only exceptions.
             if len(c) == 0:
-                logger.error("ERROR empty cluster when merging views i={} j={}: No common \
-    points between partition {} and {}".format(i,j,e,s))
+                logger.error("ERROR empty cluster when merging views i={} j={}: No common points between partition {} and {}".format(i,j,e,s))
                 logger.warning("|view {} partition {}| : {}".format(i,e,len(set_vie)))
                 for pt in s:
                     logger.warning("|view {} partition {}| : {}({})".format(j,pt,len(cache[pt]),len(set(np.where(self.Pi[j] == pt)[0])) ) )
@@ -273,17 +272,22 @@ class NCFwR(object):
             new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
             cluster_id += 1
             # the remaining points in View i that couldn't be merged are marked as potential exceptions.
-            overall_candidates |= set_vie
-            # end of the creation of the new partition
+            #overall_candidates |= set_vie
+            # end of the creation of the new partition (for e,s ...)
             
         # Additionally, Points that couldn't be included in any merge must also be marked.
-        for p,set_vjp in cache.items():
-            overall_candidates |= set_vjp 
+        #for p,set_vjp in cache.items():
+        #    overall_candidates |= set_vjp
         # end if Merging step.
+
+        # this var contains all the points marked as exceptions in the current merge and in the merges made when
+        # the source views were created.
+        overall_exceptions = set(np.where(new_partitioning == -1)[0])
 
         # computing the weights of marked points
         marked_points_weights = {}
-        for p in overall_candidates:        
+        #for p in overall_candidates: # put also the past exceptions!
+        for p in overall_exceptions:  # put also the past exceptions!
             available_labels = np.unique(new_partitioning[np.where(new_partitioning > -1)[0]])
             epweights_A = exception_weights.get(i, {}) # original source views dont have exceptions
             epweights_B = exception_weights.get(j, {})
