@@ -15,6 +15,7 @@ import utils
 from logging_setup import logger
 import numpy as np
 import json
+import pickle
 from datetime import datetime
 from time import perf_counter
 from math import ceil
@@ -162,20 +163,21 @@ if __name__ == '__main__':
     set_start_method("spawn")
 
     #datapath="data"
-    datapath = "D:/mvdata"
+    datapath = "../mvdata"
     initial_seed=1000982
-    nruns=3#10
+    nruns=5#10
 
-    #k_values = [3, 6, 12, 24, 48]
-    k_values = [6]
+    k_values = [3, 6, 10, 20]
+    #k_values = [6]
 
-    methods = ["NCF", "NCFwR:number_random_partitions=10"]#, "NCFwR:number_random_partitions=20"],
+    methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],
                #"NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60"]#,
                #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
     #methods = ["NCF", "NCFwR:number_random_partitions=10"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
+    #datasources = ["CaltechN"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
 
@@ -193,6 +195,11 @@ if __name__ == '__main__':
     logger.info("Overall procedure ended.")
     now = datetime.now()
     outputfile = "RES_{0}_{1}secs.json".format(now.strftime("%b%d%Y.%H%M%S"), elapsed)
+
+    ## backup in case something fails below
+    with open('{0}.backup.pickle'.format(outputfile), 'wb') as f:
+        pickle.dump(result_lst, f, protocol=2)
+        logger.info("Backup pickle dump written to {0}".format('{0}.backup.pickle'.format(outputfile)))
 
     results = {}
     for run_ex in result_lst:
