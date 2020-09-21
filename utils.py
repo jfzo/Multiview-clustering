@@ -2,6 +2,7 @@ import itertools
 from scipy.stats import kendalltau
 from logging_setup import logger
 from sklearn.metrics import confusion_matrix
+from sklearn.metrics import f1_score, accuracy_score, normalized_mutual_info_score, precision_score, recall_score, adjusted_rand_score
 import numpy as np
 
 
@@ -246,6 +247,30 @@ def Entropy(labels_pred, labels_true):
         n_r = cnt_pred[r]
         sum_E += (n_r/n)*ce_r
     return sum_E
+
+# f1_score
+def F1Score(labels_pred, labels_true):
+    return f1_score(labels_true, labels_pred, average='weighted')
+
+# accuracy_score
+def ACCScore(labels_pred, labels_true):
+    return accuracy_score(labels_true, labels_pred)
+
+# normalized_mutual_info_score
+def NMIScore(labels_pred, labels_true):
+    return normalized_mutual_info_score(labels_true, labels_pred)
+
+# precision_score
+def PRECScore(labels_pred, labels_true):
+    return precision_score(labels_true, labels_pred, average='weighted')
+
+# recall_score
+def RECScore(labels_pred, labels_true):
+    return recall_score(labels_true, labels_pred, average='weighted')
+
+# adjusted_rand_score
+def ARIScore(labels_pred, labels_true):
+    return adjusted_rand_score(labels_true, labels_pred)
 
 def complexity_rank_behavior(results):
     output = {}

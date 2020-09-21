@@ -71,24 +71,64 @@ def perform_single_run(params):
 
             consensus_E = utils.Entropy(consensus_partition, ds_inst.get_real_labels())
             consensus_P = utils.Purity(consensus_partition, ds_inst.get_real_labels())
+            consensus_F1 = utils.F1Score(consensus_partition, ds_inst.get_real_labels())
+            consensus_ACC = utils.ACCScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_NMI = utils.NMIScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_PREC = utils.PRECScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_REC = utils.RECScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_ARI = utils.ARIScore(consensus_partition, ds_inst.get_real_labels())
 
             dsname_kval = "{0}:{1}".format(ds_inst.name, k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
             if not dsname_kval in results_per_run[met_name]:
                 results_per_run[met_name][dsname_kval] = {}
                 for viewname in ds_inst.get_views():
                     ncusters_in_view = np.unique(ds_inst.get_views()[viewname])
-                    results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view, "entropy": [],
-                                                                "purity": []}
-                results_per_run[met_name][dsname_kval]["consensus"] = {"K": consensus_kval, "entropy": [], "purity": []}
+                    results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view,
+                                                                        "entropy": [],
+                                                                        "purity": [],
+                                                                        "f1" : [],
+                                                                        "accuracy": [],
+                                                                        "nmi" : [],
+                                                                        "precision" : [],
+                                                                        "recall" : [],
+                                                                        "ari" : []}
+
+                results_per_run[met_name][dsname_kval]["consensus"] = {"K": consensus_kval,
+                                                                       "entropy": [],
+                                                                       "purity": [],
+                                                                        "f1": [],
+                                                                        "accuracy": [],
+                                                                        "nmi": [],
+                                                                        "precision": [],
+                                                                        "recall": [],
+                                                                        "ari": []}
 
             for viewname in ds_inst.get_views():
                 v_E = utils.Entropy(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
-                v_P = utils.Purity(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
                 results_per_run[met_name][dsname_kval][viewname]["entropy"].append(v_E)
+                v_P = utils.Purity(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
                 results_per_run[met_name][dsname_kval][viewname]["purity"].append(v_P)
+                v_F1 = utils.F1Score(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["f1"].append(v_F1)
+                v_ACC = utils.ACCScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["accuracy"].append(v_ACC)
+                v_NMI = utils.NMIScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["nmi"].append(v_NMI)
+                v_PREC = utils.PRECScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["precision"].append(v_PREC)
+                v_REC = utils.RECScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["recall"].append(v_REC)
+                v_ARI = utils.ARIScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                results_per_run[met_name][dsname_kval][viewname]["ari"].append(v_ARI)
 
             results_per_run[met_name][dsname_kval]["consensus"]["entropy"].append(consensus_E)
             results_per_run[met_name][dsname_kval]["consensus"]["purity"].append(consensus_P)
+            results_per_run[met_name][dsname_kval]["consensus"]["f1"].append(consensus_F1)
+            results_per_run[met_name][dsname_kval]["consensus"]["accuracy"].append(consensus_ACC)
+            results_per_run[met_name][dsname_kval]["consensus"]["nmi"].append(consensus_NMI)
+            results_per_run[met_name][dsname_kval]["consensus"]["precision"].append(consensus_PREC)
+            results_per_run[met_name][dsname_kval]["consensus"]["recall"].append(consensus_REC)
+            results_per_run[met_name][dsname_kval]["consensus"]["ari"].append(consensus_ARI)
 
             if hasattr(met_op_inst, 'complexity_rank'):
                 if not 'aveK_ranks' in results_per_run[met_name][dsname_kval]:
