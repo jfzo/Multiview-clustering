@@ -386,8 +386,41 @@ def tab_from_flat(flat_results, measure):
     tb_data = [[M] + perf for M, P in tb_results.items() for d, perf in P.items()]
     return cols, tb_data
 
-
 if __name__ == '__main__':
+    import json
+    import numpy as np
+    from tabulate import tabulate, tabulate_formats
+    #print(random_partition(5, 10))
+    path = "."
+    path = path.replace("\\", "/")
+    #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
+    R = json.load(open("{0}/{1}".format(path, "outputfile.json")) )
+    tableFmt = 'github'
+    """
+       ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
+       'mediawiki', 'moinmoin', 'orgtbl', 'pipe', 'plain', 'presto', 'pretty', 'psql', 'rst', 
+       'simple', 'textile', 'tsv', 'youtrack']
+    """
+    measures = ['entropy', 'purity', 'f1', 'accuracy', 'nmi', 'precision', 'recall', 'ari']
+
+    for met in R:
+        for DS in R[met]:
+            rows = []
+            for V in R[met][DS]:
+                if V == 'aveK_ranks':
+                    continue
+                colHeader = [V]
+                colHeader.extend(measures)
+                row = [V]
+                for M in measures:
+                    aveM = np.mean(R[met][DS][V][M])
+                    sdM = np.std(R[met][DS][V][M])
+                    row.append("{0:.3f} ({1:.3f})".format(aveM, sdM))
+                rows.append(row)
+            print("**{0}**".format(DS))
+            print(tabulate(rows, headers=colHeader, tablefmt=tableFmt))
+
+if __name__ == '__main__2':
     import json
     import numpy as np
     from tabulate import tabulate, tabulate_formats
