@@ -287,20 +287,26 @@ def complexity_rank_behavior(results):
                 output[M][DS] = {'k':K, 'ave_tau':ave_t, 'sd_tau':sd_t, 'ranks_str':rank_lists_str}
     return output
 
-def flat_performance_dict(results, report_relative = False):
+def flat_relative_performance_dict(results, report_relative = False):
     """
     Generates a dictionary with each method and view along with the best results for that method over that view.
     The consensus keys are the proposals. The other ones denote the original views clustered by kmeans.
     :param results: Dict with the results
     :return:
     """
-    ov_max_purity = -float("inf")
-    ov_min_entropy = float("inf")
+    #ov_max_purity = -float("inf")
+    #ov_min_entropy = float("inf")
     output = {}
     for M in results.keys():
         for DS in results[M].keys():
             ov_max_purity = -float("inf")
             ov_min_entropy = float("inf")
+            ov_max_f1 = -float("inf")
+            ov_max_acc = -float("inf")
+            ov_max_nmi = -float("inf")
+            ov_max_prec = -float("inf")
+            ov_max_rec = -float("inf")
+            ov_max_ari = -float("inf")
             for V in results[M][DS].keys():
                 if V == 'aveK_ranks':  # average complexity ranking Info (avoid its parsing)
                     continue
@@ -308,8 +314,23 @@ def flat_performance_dict(results, report_relative = False):
                 output[entry_name] = {}
                 output[entry_name]['entropy'] = np.min( results[M][DS][V]['entropy'] )
                 output[entry_name]['purity'] = np.max(results[M][DS][V]['purity'])
+                output[entry_name]['f1'] = np.max(results[M][DS][V]['f1'])
+                output[entry_name]['accuracy'] = np.max(results[M][DS][V]['accuracy'])
+                output[entry_name]['nmi'] = np.max(results[M][DS][V]['nmi'])
+                output[entry_name]['precision'] = np.max(results[M][DS][V]['precision'])
+                output[entry_name]['recall'] = np.max(results[M][DS][V]['recall'])
+                output[entry_name]['ari'] = np.max(results[M][DS][V]['ari'])
+
                 ov_min_entropy = output[entry_name]['entropy'] if output[entry_name]['entropy'] < ov_min_entropy else ov_min_entropy
                 ov_max_purity = output[entry_name]['purity'] if output[entry_name]['purity'] > ov_max_purity else ov_max_purity
+                ov_max_f1 = output[entry_name]['f1'] if output[entry_name]['f1'] > ov_max_f1 else ov_max_f1
+                ov_max_acc = output[entry_name]['accuracy'] if output[entry_name]['accuracy'] > ov_max_acc else ov_max_acc
+                ov_max_nmi = output[entry_name]['nmi'] if output[entry_name]['nmi'] > ov_max_nmi else ov_max_nmi
+                ov_max_prec = output[entry_name]['precision'] if output[entry_name]['precision'] > ov_max_prec else ov_max_prec
+                ov_max_rec = output[entry_name]['recall'] if output[entry_name]['recall'] > ov_max_rec else ov_max_rec
+                ov_max_ari = output[entry_name]['ari'] if output[entry_name]['ari'] > ov_max_ari else ov_max_ari
+
+
             # relative Perf. for all these views
             if report_relative:
                 for V in results[M][DS].keys():
@@ -318,6 +339,12 @@ def flat_performance_dict(results, report_relative = False):
                     entry_name = "{0}_{1}_{2}_k_{3}".format(M, V, DS, DS.split(":")[1])
                     output[entry_name]['entropy'] = output[entry_name]['entropy'] / ov_min_entropy
                     output[entry_name]['purity'] = ov_max_purity / output[entry_name]['purity']
+                    output[entry_name]['f1'] = ov_max_f1 / output[entry_name]['f1']
+                    output[entry_name]['accuracy'] = ov_max_acc / output[entry_name]['accuracy']
+                    output[entry_name]['nmi'] = ov_max_nmi / output[entry_name]['nmi']
+                    output[entry_name]['precision'] = ov_max_prec / output[entry_name]['precision']
+                    output[entry_name]['recall'] = ov_max_rec / output[entry_name]['recall']
+                    output[entry_name]['ari'] = ov_max_ari / output[entry_name]['ari']
 
     return output
 
@@ -365,13 +392,13 @@ if __name__ == '__main__':
     import numpy as np
     from tabulate import tabulate, tabulate_formats
     #print(random_partition(5, 10))
-    path = "D:\Google Drive\Research - Multiview and Collaborative Clustering\code\Multiview-clustering\gcloud-inst-results-29.07.20"
+    path = "."
     path = path.replace("\\", "/")
     #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
-    R = json.load(open("{0}/{1}".format(path, "RES_Jul302020.020008_7130secs.json")) )
+    R = json.load(open("{0}/{1}".format(path, "outputfile.json")) )
+    tableFmt = 'fancy_grid'
 
-
-    flat_results = flat_performance_dict(R, report_relative=True)
+    flat_results = flat_relative_performance_dict(R, report_relative=True)
     """
     ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
     'mediawiki', 'moinmoin', 'orgtbl', 'pipe', 'plain', 'presto', 'pretty', 'psql', 'rst', 
@@ -379,11 +406,36 @@ if __name__ == '__main__':
     """
     cols, tb_data = tab_from_flat(flat_results, measure='purity')
     print("PURITY")
-    print(tabulate(tb_data, headers=cols, tablefmt="plain"))
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
 
     cols, tb_data = tab_from_flat(flat_results, measure='entropy')
     print("ENTROPY")
-    print(tabulate(tb_data, headers=cols, tablefmt="plain"))
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='f1')
+    print("F1")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='accuracy')
+    print("ACCURACY")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='nmi')
+    print("NMI")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='precision')
+    print("PRECISION")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='recall')
+    print("RECALL")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
+    cols, tb_data = tab_from_flat(flat_results, measure='ari')
+    print("ARI")
+    print(tabulate(tb_data, headers=cols, tablefmt=tableFmt))
+
 
     comp_rank_b = complexity_rank_behavior(R)
     #print(comp_rank_b)
@@ -393,4 +445,5 @@ if __name__ == '__main__':
             flat_comp.append((M.split("#")[0],M.split("#")[1],D.split(":")[0],D.split(":")[1],comp_rank_b[M][D]['ave_tau'],comp_rank_b[M][D]['sd_tau'],comp_rank_b[M][D]['ranks_str']))
 
     #print(flat_comp)
-    print(tabulate(flat_comp[1:], headers=flat_comp[0], tablefmt="plain"))
+    
+    print(tabulate(flat_comp[1:], headers=flat_comp[0], tablefmt=tableFmt))

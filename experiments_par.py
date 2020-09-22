@@ -141,6 +141,9 @@ def perform_single_run(params):
             #logger.debug("Purity: %f" % (consensus_P))
 
         except BadSourcePartitionException as e:
+            dsname_kval = "{0}:{1}".format(ds_inst.name, k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
+            if not dsname_kval in results_per_run[met_name]:
+                results_per_run[met_name][dsname_kval] = {}
             logger.error(e)
 
     return results_per_run
