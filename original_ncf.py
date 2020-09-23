@@ -238,8 +238,7 @@ class NCFwR(object):
         #new_partitioning = np.zeros(self.Pi[i].shape, dtype=np.int32)
         new_partitioning = np.repeat(-1, self.Pi[i].shape[0]) # By default each pt is marked.
         cluster_id = 0 # Cluster ids start from 0
-        #overall_candidates = set()
-        
+
         for e,s in merge_ops.items():
             # candidate points to merge initially
             set_vie = set(np.where(self.Pi[i] == e)[0])
@@ -271,15 +270,8 @@ class NCFwR(object):
                 
             new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
             cluster_id += 1
-            # the remaining points in View i that couldn't be merged are marked as potential exceptions.
-            #overall_candidates |= set_vie
             # end of the creation of the new partition (for e,s ...)
             
-        # Additionally, Points that couldn't be included in any merge must also be marked.
-        #for p,set_vjp in cache.items():
-        #    overall_candidates |= set_vjp
-        # end if Merging step.
-
         # this var contains all the points marked as exceptions in the current merge and in the merges made when
         # the source views were created.
         overall_exceptions = set(np.where(new_partitioning == -1)[0])
@@ -511,7 +503,6 @@ class NCF(object):
         # new_partitioning = np.zeros(self.Pi[i].shape, dtype=np.int32)
         new_partitioning = np.repeat(-1, self.Pi[i].shape[0])  # By default each pt is marked.
         cluster_id = 0  # Cluster ids start from 0
-        overall_candidates = set()
 
         for e, s in merge_ops.items():
             # candidate points to merge initially
@@ -546,17 +537,16 @@ class NCF(object):
             new_partitioning[np.array(list(c), dtype=np.int32)] = cluster_id
             cluster_id += 1
             # the remaining points in View i that couldn't be merged are marked as potential exceptions.
-            overall_candidates |= set_vie
+            #overall_candidates |= set_vie
             # end of the creation of the new partition
 
         # Additionally, Points that couldn't be included in any merge must also be marked.
-        for p, set_vjp in cache.items():
-            overall_candidates |= set_vjp
-            # end if Merging step.
+        overall_exceptions = set(np.where(new_partitioning == -1)[0])
 
         # computing the weights of marked points
         marked_points_weights = {}
-        for p in overall_candidates:
+        # for p in overall_candidates: # put also the past exceptions!
+        for p in overall_exceptions:
             available_labels = np.unique(new_partitioning[np.where(new_partitioning > -1)[0]])
             epweights_A = exception_weights.get(i, {})  # original source views dont have exceptions
             epweights_B = exception_weights.get(j, {})
