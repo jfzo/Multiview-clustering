@@ -56,7 +56,8 @@ def perform_single_run(params):
     for r in range(nruns):
         seed = np.random.randint(1, 1e5)
         ds_inst = ds_class_(datapath, k_val, seed) #  instances the datasource
-
+        dsname_kval = "{0}:{1}".format(ds_inst.name,
+                                       k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
         argsDict['seed'] = seed
         logger.debug("Creating method {0}".format(met_op_str))
         met_op_inst = met_op_class_(args=argsDict) # instances the method
@@ -65,10 +66,31 @@ def perform_single_run(params):
         logger.debug("Created!")
         if not met_name in results_per_run:
             results_per_run[met_name] = {}
-
+            results_per_run[met_name][dsname_kval] = {}
+            for viewname in ds_inst.get_views():
+                ncusters_in_view = np.unique(ds_inst.get_views()[viewname])
+                results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view,
+                                                                    "entropy": [],
+                                                                    "purity": [],
+                                                                    "f1" : [],
+                                                                    "accuracy": [],
+                                                                    "nmi" : [],
+                                                                    "precision" : [],
+                                                                    "recall" : [],
+                                                                    "ari" : []}
+            results_per_run[met_name][dsname_kval]["consensus"] = {"K": None,
+                                                                   "entropy": [],
+                                                                   "purity": [],
+                                                                   "f1": [],
+                                                                   "accuracy": [],
+                                                                   "nmi": [],
+                                                                   "precision": [],
+                                                                   "recall": [],
+                                                                   "ari": []}
         try:
             consensus_partition = met_op_inst.run() # executes the method!
             consensus_kval = len(np.unique(consensus_partition))
+            results_per_run[met_name][dsname_kval]["consensus"]["K"] = consensus_kval
 
             consensus_E = utils.Entropy(consensus_partition, ds_inst.get_real_labels())
             consensus_P = utils.Purity(consensus_partition, ds_inst.get_real_labels())
@@ -78,31 +100,6 @@ def perform_single_run(params):
             consensus_PREC = utils.PRECScore(consensus_partition, ds_inst.get_real_labels())
             consensus_REC = utils.RECScore(consensus_partition, ds_inst.get_real_labels())
             consensus_ARI = utils.ARIScore(consensus_partition, ds_inst.get_real_labels())
-
-            dsname_kval = "{0}:{1}".format(ds_inst.name, k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
-            if not dsname_kval in results_per_run[met_name]:
-                results_per_run[met_name][dsname_kval] = {}
-                for viewname in ds_inst.get_views():
-                    ncusters_in_view = np.unique(ds_inst.get_views()[viewname])
-                    results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view,
-                                                                        "entropy": [],
-                                                                        "purity": [],
-                                                                        "f1" : [],
-                                                                        "accuracy": [],
-                                                                        "nmi" : [],
-                                                                        "precision" : [],
-                                                                        "recall" : [],
-                                                                        "ari" : []}
-
-                results_per_run[met_name][dsname_kval]["consensus"] = {"K": consensus_kval,
-                                                                       "entropy": [],
-                                                                       "purity": [],
-                                                                        "f1": [],
-                                                                        "accuracy": [],
-                                                                        "nmi": [],
-                                                                        "precision": [],
-                                                                        "recall": [],
-                                                                        "ari": []}
 
             for viewname in ds_inst.get_views():
                 v_E = utils.Entropy(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
@@ -166,21 +163,21 @@ if __name__ == '__main__':
     set_start_method("spawn")
 
     #datapath="data"
-    datapath = "../mvdata"
+    datapath = "../../mvdata"
     initial_seed=1000982
-    nruns=5#10
+    nruns=10
 
     k_values = [3, 6, 10, 20]
     #k_values = [6]
 
-    methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],
+    #methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],
                #"NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60"]#,
                #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
-    #methods = ["NCF", "NCFwR:number_random_partitions=10"]
+    methods = ["NCF"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
-    #datasources = ["CaltechN"]
+    #datasources = ["Handwritten"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
 
