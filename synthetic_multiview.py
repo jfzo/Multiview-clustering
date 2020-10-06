@@ -4,7 +4,7 @@ from data_source import DataViewGenerator
 
 import numpy as np
 from sklearn import preprocessing
-from sklearn.cluster import MiniBatchKMeans, KMeans
+from sklearn import metrics
 import scipy
 from scipy.io import loadmat
 
@@ -82,5 +82,7 @@ if __name__ == '__main__':
     #adSet = AlteredDataSet(seed=23, pctHigh=0.23, h=.9, l=0.8, nC=10, nP=100, nV=10)
     adSet = AlteredDataSet(args={'seed' : 23, 'pctLow' : 0.25, 'h' : .9, 'l' : 0.6, 'nC' : 5, 'nP' : 50, 'nV' : 6})
     for v in adSet.get_views():
-        logger.debug('View "{0}": {1}'.format(v, adSet.get_views()[v]))
+        logger.debug('View "{0}", AvgP: {1}'.format(v,
+                                              metrics.precision_score(adSet.get_real_labels(), adSet.get_views()[v], average='micro')))
+
 
