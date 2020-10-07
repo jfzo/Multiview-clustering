@@ -13,7 +13,7 @@ class AlteredDataSet(DataViewGenerator):
     def __init__(self, *args, **kwargs):
         """
         Multiview dataset generator that generates altered views from true labels
-        :param nVLow: Number of views with a low amount of incorrect data point labels
+        :param nVHigh: Number of views with a high amount of incorrect data point labels
         :param h: Percentage of incorrect data point labels considered as 'high'
         :param l: Percentage of incorrect data point labels considered as 'low'
         :param nC: Number of true clusters
@@ -28,10 +28,10 @@ class AlteredDataSet(DataViewGenerator):
             self.logger.debug("getting args from kwargs!")
             dict_args = kwargs["args"]
             logger.debug("params:{0}".format(dict_args))
-            if "nVLow" in dict_args:
-                self.nVLow = int(dict_args["nVLow"])
+            if "nVHigh" in dict_args:
+                self.nVHigh = int(dict_args["nVHigh"])
             else:
-                self.nVLow = 1
+                self.nVHigh = 1
             if "h" in dict_args:
                 self.h = float(dict_args["h"])
             else:
@@ -60,8 +60,11 @@ class AlteredDataSet(DataViewGenerator):
             self.logger.error("Getting dataset generation parameters from args is not implemented!")
             raise NotImplemented
 
-        self.logger.debug("starting with parameters {0}".format({'seed':self.seed, 'h':self.h, 'nVLow':self.nVLow,
+        self.logger.debug("starting with parameters {0}".format({'seed':self.seed, 'h':self.h, 'nVHigh':self.nVHigh,
                                                                  'l':self.l, 'nC':self.nC, 'nP':self.nP, 'nV':self.nV}))
+
+        self.name = 'AltDS_{0}_{1:.2f}'.format(self.nVHigh, self.h)
+
         self.data_views = None
         self.views = {}
         self.__build_views__()
@@ -73,10 +76,10 @@ class AlteredDataSet(DataViewGenerator):
         self.labels = trueLabels
         # construction of views
         _ = [self.views.setdefault('v{0}'.format(i), None) for i in range(self.nV)]
-        #nViewsLow = int(np.ceil(self.nV * self.nVLow))
-        nViewsLow = self.nVLow
-        nViewsHigh = self.nV - nViewsLow
-        highlyAlteredViews = set(np.random.choice(list(self.views.keys()), nViewsHigh, replace=False))
+        #nViewsLow = int(np.ceil(self.nV * self.nVHigh))
+        #nViewsHigh = self.nVHigh
+        #nViewsLow = self.nV - nViewsHigh
+        highlyAlteredViews = set(np.random.choice(list(self.views.keys()), self.nVHigh, replace=False))
         for i in self.views:
             self.views[i] = trueLabels.copy()
             viewPtr = self.views[i]
@@ -94,8 +97,9 @@ class AlteredDataSet(DataViewGenerator):
 
 if __name__ == '__main__':
     #adSet = AlteredDataSet(seed=23, pctHigh=0.23, h=.9, l=0.8, nC=10, nP=100, nV=10)
-    #adSet = AlteredDataSet(args={'seed' : 23, 'nVLow' : 0.5, 'h' : .4, 'l' : .1, 'nC' : 5, 'nP' : 200, 'nV' : 6})
-    adSet = AlteredDataSet(args={'seed': 1, 'nVLow': 2, 'h': 0.1, 'l': 0.06, 'nC': 5, 'nP': 200, 'nV': 6})
+    #adSet = AlteredDataSet(args={'seed' : 23, 'nVHigh' : 0.5, 'h' : .4, 'l' : .1, 'nC' : 5, 'nP' : 200, 'nV' : 6})
+    adSet = AlteredDataSet(args={'seed': 1, 'nVHigh': 4, 'h': 0.25, 'l': 0.05, 'nC': 5, 'nP': 200, 'nV': 6})
+    logger.debug("Created dataset {0}".format(adSet.name))
     for v in adSet.get_views():
         logger.debug('View "{0}", P: {1:.3f}, F1: {2:.3f}, MI: {3:.3f}, ARI: {4:.3f}'.format(v,
                                               metrics.precision_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'),

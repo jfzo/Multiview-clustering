@@ -3,6 +3,10 @@ from scipy.stats import kendalltau
 from logging_setup import logger
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score, accuracy_score, normalized_mutual_info_score, precision_score, recall_score, adjusted_rand_score
+
+import json
+import numpy as np
+from tabulate import tabulate, tabulate_formats
 import numpy as np
 
 
@@ -386,16 +390,13 @@ def tab_from_flat(flat_results, measure):
     tb_data = [[M] + perf for M, P in tb_results.items() for d, perf in P.items()]
     return cols, tb_data
 
-if __name__ == '__main__':
-    import json
-    import numpy as np
-    from tabulate import tabulate, tabulate_formats
+def summary_tables_from_json(resultsFile, path = ".",tableFmt = 'github'):
     #print(random_partition(5, 10))
-    path = "."
+
     path = path.replace("\\", "/")
     #R = json.load(open("RES_Jul282020.062321_29580secs.json"))
-    R = json.load(open("{0}/{1}".format(path, "outputfile.json")) )
-    tableFmt = 'github'
+    R = json.load(open("{0}/{1}".format(path, resultsFile)) )
+
     """
        ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
        'mediawiki', 'moinmoin', 'orgtbl', 'pipe', 'plain', 'presto', 'pretty', 'psql', 'rst', 
@@ -419,6 +420,45 @@ if __name__ == '__main__':
                 rows.append(row)
             print("**{0}**".format(DS))
             print(tabulate(rows, headers=colHeader, tablefmt=tableFmt))
+
+def complete_tables_from_json(resultsFile, path = ".",tableFmt = 'github', outputFile=None):
+    path = path.replace("\\", "/")
+    R = json.load(open("{0}/{1}".format(path, resultsFile)) )
+
+    """
+       ['fancy_grid', 'github', 'grid', 'html', 'jira', 'latex', 'latex_booktabs', 'latex_raw', 
+       'mediawiki', 'moinmoin', 'orgtbl', 'pipe', 'plain', 'presto', 'pretty', 'psql', 'rst', 
+       'simple', 'textile', 'tsv', 'youtrack']
+    """
+    measures = ['entropy', 'purity', 'f1', 'accuracy', 'nmi', 'precision', 'recall', 'ari']
+
+    rows = []
+    colHeader = []
+
+    for met in R:
+        for DS in R[met]:
+            for V in R[met][DS]:
+                if V == 'aveK_ranks':
+                    continue
+                if len(colHeader) == 0:
+                    colHeader = ['DS', 'View', 'run']
+                    colHeader.extend(measures)
+                nruns = len(R[met][DS][V][measures[0]]) # sometimes this value varies due to absent solutions
+                for run in range(nruns):
+                    row = [DS, V]
+                    row.append(run + 1)
+                    for M in measures:
+                        row.append("{0:.3f}".format(R[met][DS][V][M][run]))
+                    rows.append(row)
+    tabularData = tabulate(rows, headers=colHeader, tablefmt=tableFmt)
+    if outputFile is None:
+        print(tabularData)
+    else:
+        with open(outputFile, "w") as fp:
+            fp.write(tabularData)
+
+if __name__ == '__main__':
+    summary_tables_from_json("RES_Oct062020.121032_12secs.json")
 
 if __name__ == '__main__2':
     import json

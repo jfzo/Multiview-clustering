@@ -23,6 +23,7 @@ from itertools import product
 import importlib
 from multiprocessing import Pool, set_start_method
 import os
+from utils import summary_tables_from_json
 
 def perform_single_run(params):
     """
@@ -43,19 +44,23 @@ def perform_single_run(params):
         arg_name, arg_val = arg_i.split("=")
         logger.debug("adding arg key {0} -> {0}".format(arg_name,arg_val))
         argsDict[arg_name] = int(arg_val) # this must be specified in a more flexible way
-    #logger.debug("Params parsed: %s" % (argsDict))
+
     # getting the required classes
-    #ds_mod = importlib.import_module("data_source")
     ds_mod = importlib.import_module("synthetic_multiview")
-    ds_class_ = getattr(ds_mod, params[2])
+    ds_class_ = getattr(ds_mod, "AlteredDataSet") # synthetic dataset class
     met_op_mod = importlib.import_module("original_ncf")
     met_op_class_ = getattr(met_op_mod, met_op_str)
+
     # starting the loop of runs
     results_per_run = {}
     logger.debug("run with params:{0}".format(params))
     for r in range(nruns):
         seed = np.random.randint(1, 1e5)
-        ds_inst = ds_class_(datapath, k_val, seed) #  instances the datasource
+        # generation of the dataset
+        params[2]['seed'] = seed
+        ds_inst = ds_class_(args=params[2])  # instancing the datasource
+        logger.debug("dataset: {0}".format(ds_inst.name))
+
         dsname_kval = "{0}:{1}".format(ds_inst.name,
                                        k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
         argsDict['seed'] = seed
@@ -146,13 +151,11 @@ def perform_single_run(params):
     return results_per_run
 
 
-def initializer(arg0, arg1, arg2):
-    global datapath
-    datapath = arg0
+def initializer(arg0, arg1):
     global initial_seed
-    initial_seed = arg1
+    initial_seed = arg0
     global nruns
-    nruns = arg2
+    nruns = arg1
 
 
 
@@ -163,11 +166,11 @@ if __name__ == '__main__':
     set_start_method("spawn")
 
     #datapath="data"
-    datapath = "../../mvdata"
-    initial_seed=1000982
-    nruns=10
+    #datapath = "../../mvdata"
+    initial_seed=101
+    nruns=30
 
-    k_values = [3, 6, 10, 20]
+    k_values = [3, 7, 10, 14]
     #k_values = [6]
 
     #methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],
@@ -176,7 +179,9 @@ if __name__ == '__main__':
     methods = ["NCF"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
-    datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
+    #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
+    datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': 10, 'nP': 200, 'nV': 8} for p0,p1 in product((1,3,5), (.1,.25,.4)) ]
+
     #datasources = ["Handwritten"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
@@ -186,7 +191,7 @@ if __name__ == '__main__':
     start_time = perf_counter()
     logger.debug("Starting parallel procedure...")
 
-    with Pool(os.cpu_count(), initializer, (datapath, initial_seed, nruns)) as p:
+    with Pool(os.cpu_count(), initializer, (initial_seed, nruns)) as p:
         result_lst = p.map(perform_single_run, computation_lst)
 
     # storage routines
@@ -224,9 +229,11 @@ if __name__ == '__main__':
 
     logger.info("Elapsed time {0:.3f} secs".format(end_time - start_time))
 
-    logger.debug('*************************')
-    logger.debug(results)
-    logger.debug('*************************')
+    #logger.debug('*************************')
+    #logger.debug(results)
+    #logger.debug('*************************')
     with open(outputfile, 'w') as fp:
         json.dump(results, fp)
     logger.info("Results stored into file {0}".format(outputfile))
+
+    summary_tables_from_json(outputfile)
