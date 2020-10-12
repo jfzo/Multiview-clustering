@@ -36,6 +36,7 @@ def perform_single_run(params):
 
     # parsing the parameters
     k_val = params[0] # number of clusters to set for the views
+    params[2]["nC"] = k_val
     met_op_str = params[1].split(":")[0]
     met_op_args_str = params[1].split(":")[1:] # method params
     argsDict = {'seed' : None}
@@ -171,12 +172,13 @@ if __name__ == '__main__':
     nruns=30
     k_values = [3, 7, 10, 14]
     methods = ["NCF"]
-    datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': 10, 'nP': 200, 'nV': 12} for p0, p1 in
-                   product((1, 3, 5, 7, 9), (.1, .25, .4))]
-    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': 10, 'nP': 200, 'nV': 8} for p0, p1 in
-    #               product((1, 3, 5), (.1, .25, .4))]
-    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': 10, 'nP': 200, 'nV': 4} for p0, p1 in
-    #               product((1, 2, 3), (.1, .25, .4))]
+    # creating parameter dicts depending on the nr of altered views and level of alteration.
+    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 12} for p0, p1 in
+    #               product((1, 3, 5, 7, 9), (.1, .25, .4))] # 12 views
+    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 8} for p0, p1 in
+    #               product((1, 3, 5), (.1, .25, .4))] # 8 views
+    datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 4} for p0, p1 in
+                   product((1, 2, 3), (.1, .25, .4))] # 4 views
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 
