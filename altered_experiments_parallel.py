@@ -170,7 +170,7 @@ if __name__ == '__main__':
     #datapath = "../../mvdata"
     initial_seed=101
     nruns=30
-    k_values = [3, 7, 10, 14]
+    k_values = [3, 7, 10, 14] # nr of clusters for the true labels
     methods = ["NCF"]
     # creating parameter dicts depending on the nr of altered views and level of alteration.
     #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 12} for p0, p1 in

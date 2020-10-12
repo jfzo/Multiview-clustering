@@ -96,17 +96,31 @@ class AlteredDataSet(DataViewGenerator):
 
 
 if __name__ == '__main__':
-    #adSet = AlteredDataSet(seed=23, pctHigh=0.23, h=.9, l=0.8, nC=10, nP=100, nV=10)
-    #adSet = AlteredDataSet(args={'seed' : 23, 'nVHigh' : 0.5, 'h' : .4, 'l' : .1, 'nC' : 5, 'nP' : 200, 'nV' : 6})
-    adSet = AlteredDataSet(args={'seed': 1, 'nVHigh': 4, 'h': 0.25, 'l': 0.05, 'nC': 5, 'nP': 200, 'nV': 6})
-    logger.debug("Created dataset {0}".format(adSet.name))
-    for v in adSet.get_views():
-        logger.debug('View "{0}", P: {1:.3f}, F1: {2:.3f}, MI: {3:.3f}, ARI: {4:.3f}'.format(v,
-                                              metrics.precision_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'),
-                                            metrics.f1_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'),
-                                            metrics.normalized_mutual_info_score(adSet.get_real_labels(), adSet.get_views()[v]),
-                                            metrics.adjusted_rand_score(adSet.get_real_labels(), adSet.get_views()[v])
-                                                          )
-                     )
+
+    from tabulate import tabulate
+    tabRows = []
+    argDict = {'seed': 1, 'nVHigh': None, 'h': None, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 4}
+    for tC in [10]:
+        for altV in [2,3]:
+            for altPct in [.25, .4]:
+                argDict['nC'] = tC
+                argDict['nVHigh'] = altV
+                argDict['h'] = altPct
+                adSet = AlteredDataSet(args=argDict)
+                row = [argDict['nC'], argDict['nVHigh'], argDict['h']]
+                logger.debug("Created dataset {0}".format(adSet.name))
+
+                for v in adSet.get_views():
+                    row.append(metrics.precision_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'))
+                    logger.debug('View "{0}", P: {1:.3f}, F1: {2:.3f}, MI: {3:.3f}, ARI: {4:.3f}'.format(v,
+                                                        metrics.precision_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'),
+                                                        metrics.f1_score(adSet.get_real_labels(), adSet.get_views()[v], average='weighted'),
+                                                        metrics.normalized_mutual_info_score(adSet.get_real_labels(), adSet.get_views()[v]),
+                                                        metrics.adjusted_rand_score(adSet.get_real_labels(), adSet.get_views()[v])
+                                                                      )
+                                 )
+                tabRows.append(row)
+    tabHeader = ["k", "$\\lambda$", "$\\alpha$", "v0", "v1", "v2", "v3"]
+    print(tabulate(tabRows, headers=tabHeader, tablefmt="latex_raw"))
 
 
