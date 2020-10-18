@@ -169,16 +169,23 @@ if __name__ == '__main__':
     #datapath="data"
     #datapath = "../../mvdata"
     initial_seed=101
+    NVIEWS = 4
+    NRPTS = 500
     nruns=30
     k_values = [3, 7, 10, 14]
     methods = ["NCF"]
     # creating parameter dicts depending on the nr of altered views and level of alteration.
-    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 12} for p0, p1 in
-    #               product((1, 3, 5, 7, 9), (.1, .25, .4))] # 12 views
-    #datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 8} for p0, p1 in
-    #               product((1, 3, 5), (.1, .25, .4))] # 8 views
-    datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': 200, 'nV': 4} for p0, p1 in
-                   product((1, 2, 3), (.1, .25, .4))] # 4 views
+    if NVIEWS == 12:
+        datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': NRPTS, 'nV': 12} for p0, p1 in
+                       product((1, 3, 5, 7, 9), (.1, .25, .4))] # 12 views
+    elif NVIEWS == 8:
+        datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': NRPTS, 'nV': 8} for p0, p1 in
+                       product((1, 3, 5), (.1, .25, .4))] # 8 views
+    elif NVIEWS == 4:
+        datasources = [{'seed': initial_seed, 'nVHigh': p0, 'h': p1, 'l': 0.05, 'nC': None, 'nP': NRPTS, 'nV': 4} for p0, p1 in
+                       product((1, 2, 3), (.1, .25, .4))] # 4 views
+    else:
+        raise NotImplementedError("Nr. of views unsupported.")
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 

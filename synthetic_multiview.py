@@ -79,7 +79,8 @@ class AlteredDataSet(DataViewGenerator):
         #nViewsLow = int(np.ceil(self.nV * self.nVHigh))
         #nViewsHigh = self.nVHigh
         #nViewsLow = self.nV - nViewsHigh
-        highlyAlteredViews = set(np.random.choice(list(self.views.keys()), self.nVHigh, replace=False))
+        #highlyAlteredViews = set(np.random.choice(list(self.views.keys()), self.nVHigh, replace=False))
+        highlyAlteredViews = sorted(list(self.views.keys()))[:self.nVHigh]
         for i in self.views:
             self.views[i] = trueLabels.copy()
             viewPtr = self.views[i]
