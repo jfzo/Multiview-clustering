@@ -167,7 +167,7 @@ if __name__ == '__main__':
     initial_seed=1000982
     nruns=10
 
-    k_values = [3, 6, 10, 20]
+    k_values = [3, 6, 10, 15]
     #k_values = [6]
 
     #methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],

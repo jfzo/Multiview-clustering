@@ -5,7 +5,8 @@ from data_source import DataViewGenerator
 
 import numpy as np
 from sklearn import preprocessing
-from sklearn.cluster import MiniBatchKMeans, KMeans
+from sklearn.cluster import MiniBatchKMeans
+from pycluto import cluto_vcluster
 import scipy
 from scipy.io import loadmat
 
@@ -18,6 +19,16 @@ import sklearn.metrics as evalfns
 """
 BBC
 """
+
+
+def DataClusteringMethod(X, n_clusters, random_state, method='cluto'):
+    pred_labels = None
+    if method == 'kmeans':
+        km = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', random_state=random_state)
+        pred_labels = km.fit_predict(X)
+    elif method == 'cluto':
+        pred_labels = cluto_vcluster(X, n_clusters, CLUTOV_CMD='/home/juan/Documentos/cluto-2.1.2/Linux-x86_64/vcluster')
+    return pred_labels
 
 class BBC(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
@@ -55,11 +66,9 @@ class BBC(DataViewGenerator):
         random_state = self.seed
 
         for viewname in self.data_views:
-            X = self.data_views[viewname] # this is a sparse matrix!
-            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km_labels = km.fit_predict(X)
-            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+            X = self.data_views[viewname].todense() # this is a sparse matrix!
+            pred_labels = DataClusteringMethod(X, n_clusters=self.NCLUSTERS[viewname], random_state=random_state)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = pred_labels
 
 class BBC_seg2(BBC):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
@@ -83,8 +92,8 @@ class CaltechN(DataViewGenerator):
     def __init__(self, dataset_dir: str, NCLUSTERS: object, seed: int) -> None:
         self.logger = logger
         self.seed = seed
-        mlabData = loadmat(dataset_dir+"/Caltech101-7.mat")
-        # self.name = self.__class__.__name__  # can be overrided if neccessary
+        mlabData = loadmat(dataset_dir+"/Caltech101-20.mat")
+        # self.name = self.__class__.__name__  # can e overrided if neccessary
         self.data_views = {"gabor":mlabData['X'][0,0],
                       "wm":mlabData['X'][0,1],
                       "centrist":mlabData['X'][0,2],
@@ -115,10 +124,8 @@ class CaltechN(DataViewGenerator):
 
         for viewname in self.data_views:
             X = self.data_views[viewname] # this is a sparse matrix!
-            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km_labels = km.fit_predict(X)
-            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+            pred_labels = DataClusteringMethod(X, n_clusters=self.NCLUSTERS[viewname], random_state=random_state)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = pred_labels
 
 
 """
@@ -159,10 +166,8 @@ class NusWide(DataViewGenerator):
 
         for viewname in self.data_views:
             X = self.data_views[viewname] # this is a sparse matrix!
-            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km_labels = km.fit_predict(X)
-            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+            pred_labels = DataClusteringMethod(X, n_clusters=self.NCLUSTERS[viewname], random_state=random_state)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = pred_labels
 
 
 """
@@ -204,10 +209,8 @@ class Handwritten(DataViewGenerator):
 
         for viewname in self.data_views:
             X = self.data_views[viewname] # this is a sparse matrix!
-            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km_labels = km.fit_predict(X)
-            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+            pred_labels = DataClusteringMethod(X, n_clusters=self.NCLUSTERS[viewname], random_state=random_state)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = pred_labels
 
 """
 Reuters5
@@ -247,10 +250,8 @@ class Reuters5(DataViewGenerator):
 
         for viewname in self.data_views:
             X = self.data_views[viewname] # this is a sparse matrix!
-            #km = KMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km = MiniBatchKMeans(n_clusters=self.NCLUSTERS[viewname], init='k-means++', random_state=random_state)
-            km_labels = km.fit_predict(X)
-            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = km_labels
+            pred_labels = DataClusteringMethod(X, n_clusters=self.NCLUSTERS[viewname], random_state=random_state)
+            self.views["{0}_K{1}".format(viewname, self.NCLUSTERS[viewname])] = pred_labels
 
 
 def obtain_doc_and_column_indexes(docsFname):
@@ -419,6 +420,8 @@ def preprocess_bbc_data(bbc_datadir):
 
 
 if __name__ == '__main__':
+    path = "/mnt/windows/mvdata"
+
     #preprocess_bbc_data('D:/multi-view-data/bbc-segment/bbc/')
     #preprocess_bbc_data('D:/Google Drive/Research - Multiview and Collaborative Clustering/data/bbc/')
     print("Main method execution...")
