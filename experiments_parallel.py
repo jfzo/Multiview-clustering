@@ -46,7 +46,8 @@ def perform_single_run(params):
     #logger.debug("Params parsed: %s" % (argsDict))
     # getting the required classes
     #ds_mod = importlib.import_module("data_source")
-    ds_mod = importlib.import_module("multiview_datasets")
+    #ds_mod = importlib.import_module("multiview_datasets")
+    ds_mod = importlib.import_module("HDF5Datasets")
     ds_class_ = getattr(ds_mod, params[2])
     met_op_mod = importlib.import_module("original_ncf")
     met_op_class_ = getattr(met_op_mod, met_op_str)
@@ -55,7 +56,8 @@ def perform_single_run(params):
     logger.debug("run with params:{0}".format(params))
     for r in range(nruns):
         seed = np.random.randint(1, 1e5)
-        ds_inst = ds_class_(datapath, k_val, seed) #  instances the datasource
+        #ds_inst = ds_class_(datapath, k_val, seed) #  instances the datasource
+        ds_inst = ds_class_(path=datapath)
         dsname_kval = "{0}:{1}".format(ds_inst.name,
                                        k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
         argsDict['seed'] = seed
@@ -163,23 +165,21 @@ if __name__ == '__main__':
     set_start_method("spawn")
 
     #datapath="data"
-    datapath = "../../mvdata"
+    datapath = "D:/multi-view-data"
     initial_seed=1000982
     nruns=10
 
-    k_values = [3, 6, 10, 15]
+    k_values = [3]
     #k_values = [6]
 
     #methods = ["NCFwR:number_random_partitions=80"]#, "NCFwR:number_random_partitions=20"],
                #"NCFwR:number_random_partitions=30", "NCFwR:number_random_partitions=60"]#,
                #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
-    methods = ["NCF"]
+    methods = ["NCFwR:number_random_partitions=80"]
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
-    datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
-    #datasources = ["Handwritten"]
-
-    #datasources = ["TwentyNewsgroupView", "BBCSportsView"]
+    #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
+    datasources = ["Caltech20"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 

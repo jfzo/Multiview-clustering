@@ -79,15 +79,7 @@ class DataViewGenerator(metaclass=ABCMeta):
 
         #for viewname in ["tfidf", "lda", "skipgram"]:
         for viewname in self.data_views:
-            #if viewname in ["labels","dataset"]:
-            #    continue
-
             X = None
-            #if viewname == 'tfidf': # uses a sparse representation, thus it must be loaded differently
-            #    X = scipy.sparse.load_npz(self.dataset_dir + os.sep + self.data_views[viewname].replace("?", os.sep))
-            #else:
-            #    X = np.load(self.dataset_dir + os.sep + self.data_views[viewname].replace("?", os.sep))['arr_0']
-
             data_repr_input = self.dataset_dir + os.sep + self.data_views[viewname].replace("?", os.sep)
             try:
                 # trying to open the data representation as a dense file
