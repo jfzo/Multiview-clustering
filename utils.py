@@ -390,7 +390,7 @@ def tab_from_flat(flat_results, measure):
     tb_data = [[M] + perf for M, P in tb_results.items() for d, perf in P.items()]
     return cols, tb_data
 
-def summary_tables_from_json(resultsFile, path = ".",tableFmt = 'github'):
+def summary_tables_from_json(resultsFile, path = ".", writeSD=True, tableFmt = 'github'):
     #print(random_partition(5, 10))
 
     path = path.replace("\\", "/")
@@ -416,7 +416,10 @@ def summary_tables_from_json(resultsFile, path = ".",tableFmt = 'github'):
                 for M in measures:
                     aveM = np.mean(R[met][DS][V][M])
                     sdM = np.std(R[met][DS][V][M])
-                    row.append("{0:.3f} ({1:.3f})".format(aveM, sdM))
+                    if writeSD:
+                        row.append("{0:.3f} ({1:.3f})".format(aveM, sdM))
+                    else:
+                        row.append("{0:.3f}".format(aveM))
                 rows.append(row)
             print("**{0}**".format(DS))
             print(tabulate(rows, headers=colHeader, tablefmt=tableFmt))
@@ -458,7 +461,11 @@ def complete_tables_from_json(resultsFile, path = ".",tableFmt = 'github', outpu
             fp.write(tabularData)
 
 if __name__ == '__main__':
-    summary_tables_from_json("RES_Oct062020.121032_12secs.json")
+    summary_tables_from_json("./json/NCFwR#80-BBC-seg4.json", tableFmt='latex', writeSD=False)
+    summary_tables_from_json("./json/NCFwR#80-Caltech-20.json", tableFmt='latex', writeSD=False)
+    summary_tables_from_json("./json/NCFwR#80-Handwritten.json", tableFmt='latex', writeSD=False)
+    summary_tables_from_json("./json/NCFwR#80-Nus-Wide.json", tableFmt='latex', writeSD=False)
+    summary_tables_from_json("./json/NCFwR#80-Reuters-5.json", tableFmt='latex', writeSD=False)
 
 if __name__ == '__main__2':
     import json
