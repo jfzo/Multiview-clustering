@@ -18,6 +18,7 @@ class HDF5Adapter (DataViewGenerator):
     def __build_views__(self):
         f = h5py.File(self.path, 'r')
         self.labels = f['true']['true'][()]
+        #csc_matrix((data, indices, indptr), shape=(3, 3)).toarray()
         viewKeys = f['view'].keys()
         for vw in viewKeys:
             self.views[vw] = f['view'][vw][()]
@@ -70,6 +71,12 @@ def createHDF5Datasets(inDir):
                 #hdfDS['views'][k].create_group('labels')
                 #hdfDS['views'][k].create_group('data')
                 hdfDS['views'][k]['labels'] = vwLabels
-                hdfDS['views'][k]['data'] = vwData.todense()
+                #hdfDS['views'][k]['data'] = vwData.todense()
+                hdfDS['views'][k].create_group('csr-format')
+                hdfDS['views'][k]['csr-format']['data'] = vwData.data
+                hdfDS['views'][k]['csr-format']['indices'] = vwData.indices
+                hdfDS['views'][k]['csr-format']['indptr'] = vwData.indptr
+                hdfDS['views'][k]['csr-format']['shape'] = vwData.shape
+
             hdfDS['labels'] = np.loadtxt('{0}/{1}.labels'.format(fullPathFsItem,dirItem), dtype=np.int8)
             hdfDS.close()

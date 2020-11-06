@@ -483,7 +483,7 @@ def sparseMatFromCluto(inputfile, sparseFmt = False):
 
     assert (ln_no == N)
     if sparseFmt:
-        return X
+        return csr_matrix(X)
     #np.savetxt(csv_fname, X.todense(), delimiter=" ")
     return X.todense()
 
