@@ -105,6 +105,13 @@ class DataViewGenerator(metaclass=ABCMeta):
             logger.error("Views not yet extracted!")
         return self.labels
 
+    def get_data_views(self):
+        if self.data_views is not None:
+           return self.data_views
+        else:
+            logger.error("Data from Views not available!")
+            return None
+
     def create_view(self, new_k):
         np.random.seed(self.seed)
         # random_state = np.random.randint(2 ** 16 - 1)

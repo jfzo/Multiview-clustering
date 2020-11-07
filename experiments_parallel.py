@@ -23,8 +23,158 @@ from itertools import product
 import importlib
 from multiprocessing import Pool, set_start_method
 import os
+from sklearn import metrics
 
 def perform_single_run(params):
+    """
+    executes a single run by parsing and evaluating the expressions in params.
+    :param params: list with factors and parameters. E.g. (intK, strMethodClassWithArgs, strDatasetClass)
+    :return: a dict with the results obtained for all the runs and for each view of the DSet.
+    """
+    np.random.seed(initial_seed)
+    logger.debug("parallel run {0}".format(params))
+
+    # parsing the parameters
+    k_val = params[0] # number of clusters to set for the views
+    met_op_str = params[1].split(":")[0]
+    met_op_args_str = params[1].split(":")[1:]
+    argsDict = {'seed' : None}
+    for arg_i in met_op_args_str:
+        #logger.debug("adding arg %s" % (arg_i.split("=")))
+        arg_name, arg_val = arg_i.split("=")
+        logger.debug("adding arg key {0} -> {0}".format(arg_name,arg_val))
+        argsDict[arg_name] = int(arg_val) # this must be specified in a more flexible way
+    #logger.debug("Params parsed: %s" % (argsDict))
+    # getting the required classes
+    #ds_mod = importlib.import_module("data_source")
+    #ds_mod = importlib.import_module("multiview_datasets")
+    ds_mod = importlib.import_module("HDF5Datasets")
+    ds_class_ = getattr(ds_mod, params[2])
+    met_op_mod = importlib.import_module("original_ncf")
+    met_op_class_ = getattr(met_op_mod, met_op_str)
+    # starting the loop of runs
+    results_per_run = {}
+    logger.debug("run with params:{0}".format(params))
+
+    ds_inst = ds_class_(path=datapath)
+    dsname_kval = "{0}:{1}".format(ds_inst.name,
+                                   k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
+
+    for r in range(nruns):
+        seed = np.random.randint(1, 1e5)
+        #ds_inst = ds_class_(datapath, k_val, seed) #  instances the datasource
+        argsDict['seed'] = seed
+        logger.debug("Creating method {0}".format(met_op_str))
+
+        met_op_inst = met_op_class_(args=argsDict) # instances the method
+        met_name = met_op_inst.getName()
+        met_op_inst.setInputPartitions(ds_inst.get_views())
+
+        logger.debug("Created!")
+        if not met_name in results_per_run: # only 1st time the key is created.
+            results_per_run[met_name] = {}
+            results_per_run[met_name][dsname_kval] = {}
+            for viewname in ds_inst.get_views():
+                ncusters_in_view = np.unique(ds_inst.get_views()[viewname])
+                v_E = utils.Entropy(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_P = utils.Purity(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_F1 = utils.F1Score(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_ACC = utils.ACCScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_NMI = utils.NMIScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_PREC = utils.PRECScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_REC = utils.RECScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+                v_ARI = utils.ARIScore(ds_inst.get_views()[viewname], ds_inst.get_real_labels())
+
+                v_S = metrics.silhouette_score(ds_inst.get_data_views()[viewname], ds_inst.get_views()[viewname],
+                                               metric='cosine')
+                v_CH = metrics.calinski_harabasz_score(ds_inst.get_data_views()[viewname].toarray(),
+                                                       ds_inst.get_views()[viewname])
+                v_DB = metrics.davies_bouldin_score(ds_inst.get_data_views()[viewname].toarray(),
+                                                    ds_inst.get_views()[viewname])
+
+                results_per_run[met_name][dsname_kval][viewname] = {"K": ncusters_in_view,
+                                                                    "entropy": [v_E],
+                                                                    "purity": [v_P],
+                                                                    "f1": [v_F1],
+                                                                    "accuracy": [v_ACC],
+                                                                    "nmi": [v_NMI],
+                                                                    "precision": [v_PREC],
+                                                                    "recall": [v_REC],
+                                                                    "ari": [v_ARI],
+                                                                    "silhouette": [v_S],
+                                                                    "calinski": [v_CH],
+                                                                    "davies": [v_DB]}
+            results_per_run[met_name][dsname_kval]["consensus"] = {"K": None,
+                                                                   "entropy": [],
+                                                                   "purity": [],
+                                                                   "f1": [],
+                                                                   "accuracy": [],
+                                                                   "nmi": [],
+                                                                   "precision": [],
+                                                                   "recall": [],
+                                                                   "ari": []}
+            results_per_run[met_name][dsname_kval]["consensus-internals"] = {}
+        try:
+            consensus_partition = met_op_inst.run() # executes the method!
+
+            consensus_kval = len(np.unique(consensus_partition))
+            results_per_run[met_name][dsname_kval]["consensus"]["K"] = consensus_kval
+
+            consensus_E = utils.Entropy(consensus_partition, ds_inst.get_real_labels())
+            consensus_P = utils.Purity(consensus_partition, ds_inst.get_real_labels())
+            consensus_F1 = utils.F1Score(consensus_partition, ds_inst.get_real_labels())
+            consensus_ACC = utils.ACCScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_NMI = utils.NMIScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_PREC = utils.PRECScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_REC = utils.RECScore(consensus_partition, ds_inst.get_real_labels())
+            consensus_ARI = utils.ARIScore(consensus_partition, ds_inst.get_real_labels())
+
+
+            for viewname in ds_inst.get_views():
+                if not viewname in results_per_run[met_name][dsname_kval]["consensus-internals"]:
+                    results_per_run[met_name][dsname_kval]["consensus-internals"][viewname] = {"silhouette": [],
+                                                                                               "calinski": [],
+                                                                                               "davies": []}
+                # internal measures aginst consensus labels
+                consensus_S = metrics.silhouette_score(ds_inst.get_data_views()[viewname], consensus_partition,
+                                                       metric='cosine')
+                results_per_run[met_name][dsname_kval]["consensus-internals"][viewname]["silhouette"].append(consensus_S)
+
+                consensus_CH = metrics.calinski_harabasz_score(ds_inst.get_data_views()[viewname].toarray(),
+                                                               consensus_partition)
+                results_per_run[met_name][dsname_kval]["consensus-internals"][viewname]["calinski"].append(consensus_CH)
+
+                consensus_DB = metrics.davies_bouldin_score(ds_inst.get_data_views()[viewname].toarray(),
+                                                            consensus_partition)
+                results_per_run[met_name][dsname_kval]["consensus-internals"][viewname]["davies"].append(consensus_DB)
+
+            results_per_run[met_name][dsname_kval]["consensus"]["entropy"].append(consensus_E)
+            results_per_run[met_name][dsname_kval]["consensus"]["purity"].append(consensus_P)
+            results_per_run[met_name][dsname_kval]["consensus"]["f1"].append(consensus_F1)
+            results_per_run[met_name][dsname_kval]["consensus"]["accuracy"].append(consensus_ACC)
+            results_per_run[met_name][dsname_kval]["consensus"]["nmi"].append(consensus_NMI)
+            results_per_run[met_name][dsname_kval]["consensus"]["precision"].append(consensus_PREC)
+            results_per_run[met_name][dsname_kval]["consensus"]["recall"].append(consensus_REC)
+            results_per_run[met_name][dsname_kval]["consensus"]["ari"].append(consensus_ARI)
+
+            if hasattr(met_op_inst, 'complexity_rank'):
+                if not 'aveK_ranks' in results_per_run[met_name][dsname_kval]:
+                    results_per_run[met_name][dsname_kval]['aveK_ranks'] = []
+                results_per_run[met_name][dsname_kval]['aveK_ranks'].append(list(met_op_inst.complexity_rank))
+            #logger.debug("run: %s" % (params))
+            #logger.debug("Performance of %s" % (dsname_kval))
+            #logger.debug("Entropy: %f" % (consensus_E))
+            #logger.debug("Purity: %f" % (consensus_P))
+
+        except BadSourcePartitionException as e:
+            dsname_kval = "{0}:{1}".format(ds_inst.name, k_val)  # nr of clusters is appended to the dataset name for visualization purposes.
+            if not dsname_kval in results_per_run[met_name]:
+                results_per_run[met_name][dsname_kval] = {}
+            logger.error(e)
+
+    return results_per_run
+
+def perform_single_run2(params):
     """
     executes a single run by parsing and evaluating the expressions in params.
     :param params: list with factors and parameters. E.g. (intK, strMethodClassWithArgs, strDatasetClass)
@@ -165,8 +315,8 @@ if __name__ == '__main__':
     set_start_method("spawn")
 
     #datapath="data"
-    datapath = "D:/multi-view-data"
-    initial_seed=1000982
+    datapath = "/home/juan/Documentos/sparse-multiview-data"
+    initial_seed=111
     nruns=10
 
     k_values = [3]
@@ -179,7 +329,7 @@ if __name__ == '__main__':
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
-    datasources = ["Caltech20"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
+    datasources = ["BBCseg4","Reuters5","Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 
@@ -201,11 +351,13 @@ if __name__ == '__main__':
         pickle.dump(result_lst, f, protocol=2)
         logger.info("Backup pickle dump written to {0}".format('{0}.backup.pickle'.format(outputfile)))
 
+    #result_lst = pickle.load(open('RES_Nov062020.094810_284secs.json.backup.pickle', 'rb'))
     results = {}
     for run_ex in result_lst:
         assert len(run_ex) == 1
         logger.debug(("KEYS in RUN {0}".format(run_ex.keys())))
         method = list(run_ex.keys())[0]
+
         ds_dict = run_ex[method]
         assert len(ds_dict) == 1
         datasrc = list(ds_dict.keys())[0]
