@@ -115,3 +115,6 @@ def createHDF5Datasets(inDir):
 
             hdfDS['labels'] = np.loadtxt('{0}/{1}.labels'.format(fullPathFsItem,dirItem), dtype=np.int8)
             hdfDS.close()
+
+if __name__ == '__main__':
+    createHDF5Datasets('/home/juan/Documentos/sparse-multiview-data')

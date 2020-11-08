@@ -329,7 +329,8 @@ if __name__ == '__main__':
 
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
-    datasources = ["BBCseg4","Reuters5","Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
+    #datasources = ["BBCseg4","Reuters5"]#,"Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
+    datasources = ["Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 
