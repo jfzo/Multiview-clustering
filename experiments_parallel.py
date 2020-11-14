@@ -25,7 +25,7 @@ from multiprocessing import Pool, set_start_method
 import os
 from sklearn import metrics
 
-def perform_single_run(params):
+def perform_single_run2(params):
     """
     executes a single run by parsing and evaluating the expressions in params.
     :param params: list with factors and parameters. E.g. (intK, strMethodClassWithArgs, strDatasetClass)
@@ -174,7 +174,7 @@ def perform_single_run(params):
 
     return results_per_run
 
-def perform_single_run2(params):
+def perform_single_run(params):
     """
     executes a single run by parsing and evaluating the expressions in params.
     :param params: list with factors and parameters. E.g. (intK, strMethodClassWithArgs, strDatasetClass)
@@ -298,6 +298,7 @@ def perform_single_run2(params):
     return results_per_run
 
 
+
 def initializer(arg0, arg1, arg2):
     global datapath
     datapath = arg0
@@ -330,7 +331,7 @@ if __name__ == '__main__':
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
     #datasources = ["BBCseg4","Reuters5"]#,"Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
-    datasources = ["Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
+    datasources = ["Yahoo"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 

@@ -1,5 +1,6 @@
 import itertools
 from scipy.stats import kendalltau
+from scipy.io import loadmat
 from logging_setup import logger
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import f1_score, accuracy_score, normalized_mutual_info_score, precision_score, recall_score, adjusted_rand_score
@@ -441,7 +442,7 @@ def complete_tables_from_json(resultsFile, path = ".",tableFmt = 'github', outpu
     for met in R:
         for DS in R[met]:
             for V in R[met][DS]:
-                if V == 'aveK_ranks':
+                if V in ['aveK_ranks','consensus-internals']:
                     continue
                 if len(colHeader) == 0:
                     colHeader = ['DS', 'View', 'run']
@@ -487,13 +488,83 @@ def sparseMatFromCluto(inputfile, sparseFmt = False):
     #np.savetxt(csv_fname, X.todense(), delimiter=" ")
     return X.todense()
 
+# usado para procesar json que contiene medidas internas de evaluacion.
+def process_internal_evaluations(R):
+    """
+    R is a json object previously created from an input file.
+    :param R:
+    :return:
+    """
+    flatResults = {}
+    for Mt in R.keys():
+        methodResults = R[Mt]
+        flatResults[Mt] = {}
+        for DS in methodResults.keys():
+            flatResults[Mt][DS] = {}
+            for VS in methodResults[DS]['consensus-internals'].keys():
+                flatResults[Mt][DS][VS] = {}
+                # each view has its relative in methodResults[DS]
+                aveSil = np.mean(methodResults[DS]['consensus-internals'][VS]['silhouette'])
+                clustSil = methodResults[DS][VS]['silhouette']  # obtained from the clusterer performance
+                aveCal = np.mean(methodResults[DS]['consensus-internals'][VS]['calinski'])
+                clustCal = methodResults[DS][VS]['calinski']  # obtained from the clusterer performance
+                aveDvs = np.mean(methodResults[DS]['consensus-internals'][VS]['davies'])
+                clustDvs = methodResults[DS][VS]['davies'] # obtained from the clusterer performance
+                flatResults[Mt][DS][VS]['silhouette'] = (clustSil, aveSil)
+                flatResults[Mt][DS][VS]['calinski'] = (clustCal, aveCal)
+                flatResults[Mt][DS][VS]['davies'] = (clustDvs, aveDvs)
+    for Mt in flatResults:
+        alltbldata = {}
+        for ds in flatResults[Mt]:
+            tbldata = []
+            for vw in flatResults[Mt][ds]:
+                tbldata.append((vw, flatResults[Mt][ds][vw]['silhouette'][0][0],
+                                flatResults[Mt][ds][vw]['silhouette'][1], flatResults[Mt][ds][vw]['calinski'][0][0],
+                                flatResults[Mt][ds][vw]['calinski'][1], flatResults[Mt][ds][vw]['davies'][0][0],
+                                flatResults[Mt][ds][vw]['davies'][1]))
+            alltbldata[ds] = tbldata
+
+        for DS in alltbldata:
+            print("****************" , DS)
+            print(tabulate(alltbldata[DS],
+                           headers=['view', 'ct-val', 'cns-ave-val', 'ct-val', 'cns-ave-val', 'ct-val', 'cns-ave-val'],
+                           tablefmt='latex'))
+
+    return flatResults
+
+
+def process_benchmark_results():
+    cHdr = ('dataset', 'method', 'entropy', 'purity', 'f1', 'accuracy', 'nmi', 'precision', 'recall', 'ari')
+    MATLABRESINFO = {'bbc4':'/home/juan/Documentos/ensembles-matlab/bbc4_ensemble_results.mat',
+                     'handwritten':'/home/juan/Documentos/ensembles-matlab/handwritten_ensemble_results.mat',
+                     'caltech-20':'/home/juan/Documentos/ensembles-matlab/caltech-20_ensemble_results.mat',
+                     'Nus-Wide':'/home/juan/Documentos/ensembles-matlab/nusWide_ensemble_results.mat'}
+    results = []
+    for dsNm, dsResPath in MATLABRESINFO.items():
+        mDF = loadmat(dsResPath)
+        for embMet in ('cspa', 'hgpa', 'mcla'):
+            results.append(
+                (dsNm, embMet,
+                 Entropy(mDF[embMet].reshape((-1,)), mDF['trLbls'].reshape((-1,))),
+                 Purity(mDF[embMet].reshape((-1,)), mDF['trLbls'].reshape((-1,))),
+                 f1_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,)) , average='weighted'),
+                 accuracy_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,))),
+                 normalized_mutual_info_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,)) ),
+                 precision_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,)), average='weighted'),
+                 recall_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,)), average='weighted'),
+                 adjusted_rand_score(mDF['trLbls'].reshape((-1,)), mDF[embMet].reshape((-1,)))
+                 )
+            )
+
+    print(tabulate(results, headers=cHdr, tablefmt='latex'))
 
 if __name__ == '__main__':
-    summary_tables_from_json("./json/NCFwR#80-BBC-seg4.json", tableFmt='latex', writeSD=False)
-    summary_tables_from_json("./json/NCFwR#80-Caltech-20.json", tableFmt='latex', writeSD=False)
-    summary_tables_from_json("./json/NCFwR#80-Handwritten.json", tableFmt='latex', writeSD=False)
-    summary_tables_from_json("./json/NCFwR#80-Nus-Wide.json", tableFmt='latex', writeSD=False)
-    summary_tables_from_json("./json/NCFwR#80-Reuters-5.json", tableFmt='latex', writeSD=False)
+    #summary_tables_from_json("./json/NCFwR#80-BBC-seg4.json", tableFmt='latex', writeSD=False)
+    #summary_tables_from_json("./json/NCFwR#80-Caltech-20.json", tableFmt='latex', writeSD=False)
+    #summary_tables_from_json("./json/NCFwR#80-Handwritten.json", tableFmt='latex', writeSD=False)
+    #summary_tables_from_json("./json/NCFwR#80-Nus-Wide.json", tableFmt='latex', writeSD=False)
+    #summary_tables_from_json("./json/NCFwR#80-Reuters-5.json", tableFmt='latex', writeSD=False)
+    summary_tables_from_json("RES_Nov09_internal_measures.json", tableFmt='latex', writeSD=False)
 
 if __name__ == '__main__2':
     import json
