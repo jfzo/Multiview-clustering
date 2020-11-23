@@ -558,6 +558,31 @@ def process_benchmark_results():
 
     print(tabulate(results, headers=cHdr, tablefmt='latex'))
 
+def process_negmm_benchmark_results():
+    cHdr = ('dataset', 'method', 'entropy', 'purity', 'f1', 'accuracy', 'nmi', 'precision', 'recall', 'ari')
+    MATLABRESINFO = {'bbc4':'/home/juan/Documentos/ensembles-matlab/bbc4_negMM_results.mat',
+                     'handwritten':'/home/juan/Documentos/ensembles-matlab/handwritten_negMM_results.mat',
+                     'caltech-20':'/home/juan/Documentos/ensembles-matlab/caltech-20_negMM_results.mat'}
+                     #'Nus-Wide':'/home/juan/Documentos/ensembles-matlab/nusWide_ensemble_results.mat'} # not enouch mem.
+    results = []
+    embMet = 'NegMM'
+    for dsNm, dsResPath in MATLABRESINFO.items():
+        mDF = loadmat(dsResPath)
+        results.append(
+            (dsNm, embMet,
+             Entropy(mDF['negMMLabels'].reshape((-1,)), mDF['trLbls'].reshape((-1,))),
+             Purity(mDF['negMMLabels'].reshape((-1,)), mDF['trLbls'].reshape((-1,))),
+             f1_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,)) , average='weighted'),
+             accuracy_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,))),
+             normalized_mutual_info_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,)) ),
+             precision_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,)), average='weighted'),
+             recall_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,)), average='weighted'),
+             adjusted_rand_score(mDF['trLbls'].reshape((-1,)), mDF['negMMLabels'].reshape((-1,)))
+             )
+        )
+
+    print(tabulate(results, headers=cHdr, tablefmt='latex'))
+
 if __name__ == '__main__':
     #summary_tables_from_json("./json/NCFwR#80-BBC-seg4.json", tableFmt='latex', writeSD=False)
     #summary_tables_from_json("./json/NCFwR#80-Caltech-20.json", tableFmt='latex', writeSD=False)
