@@ -189,9 +189,20 @@ class NCFwR(object):
         # Since the exceptions are carried, only consider the last view weights
         #print("Solving the exceptions...\n ##################################")
         #print(exceptions[last_created_view],"\n ###############################")
+
+        nclusters = np.unique(self.Pi[last_created_view]).shape[0]
+        D = np.zeros((n,nclusters))
+        for i in range(len(self.Pi[last_created_view])):
+            if self.Pi[last_created_view][i] != -1:
+                D[i, self.Pi[last_created_view][i]] = 1
+
+        #alreadyAssignedPts = np.where(self.Pi[last_created_view] != -1)[0]
+        #D[alreadyAssignedPts, self.Pi[last_created_view][alreadyAssignedPts] ] = 1
+
         for ((p_id,c_id), w) in exception_weights[last_created_view].items():
             assert self.Pi[last_created_view][p_id] == -1 # len(self.Pi)-1 in line 285
-            
+
+            D[p_id, c_id] = w
             if not p_id in max_weight_cluster:
                 max_weight_cluster[p_id] = (c_id, w)
             elif max_weight_cluster[p_id][1] < w:
@@ -200,7 +211,7 @@ class NCFwR(object):
         for (p_id, (c,_)) in  max_weight_cluster.items():
             self.Pi[last_created_view][p_id] = c
         
-        return self.Pi[last_created_view]
+        return self.Pi[last_created_view], D
 
 
     def merge(self, i, j, K, exception_weights, alpha=0.7):
@@ -466,7 +477,7 @@ class NCF(object):
         for (p_id, (c, _)) in max_weight_cluster.items():
             self.Pi[last_created_view][p_id] = c
 
-        return self.Pi[last_created_view]
+        return self.Pi[last_created_view], None
 
     def merge(self, i, j, K, exception_weights, alpha=0.7):
         """
