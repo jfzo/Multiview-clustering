@@ -3,6 +3,7 @@ from multiprocessing import Value
 import numpy as np
 from logging_setup import logger
 from utils import *
+from datetime import datetime
 
 
 class NCFwR(object):
@@ -210,7 +211,13 @@ class NCFwR(object):
             
         for (p_id, (c,_)) in  max_weight_cluster.items():
             self.Pi[last_created_view][p_id] = c
-        
+
+        # build postfix with the date
+        #now = datetime.now()
+        #outputPostfix = "{0}".format(now.strftime("%b%d%Y.%H%M%S"))
+        #np.savetxt('labels_NCF_DS_{0}.out'.format(outputPostfix), self.Pi[last_created_view], delimiter=',', fmt='%d')
+        #np.savetxt('simmatrix_DS_{0}.out'.format(outputPostfix), D, delimiter=',', fmt='%.4f')
+
         return self.Pi[last_created_view], D
 
 

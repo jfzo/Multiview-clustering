@@ -240,7 +240,13 @@ def perform_single_run(params):
                                                                    "recall": [],
                                                                    "ari": []}
         try:
-            consensus_partition = met_op_inst.run() # executes the method!
+            consensus_partition, D = met_op_inst.run() # executes the method!
+            # build postfix with the date
+            # now = datetime.now()
+            # outputPostfix = "{0}".format(now.strftime("%b%d%Y.%H%M%S"))
+            # np.savetxt('labels_NCF_DS_{0}.out'.format(outputPostfix), consensus_partition, delimiter=',', fmt='%d')
+            # np.savetxt('simmatrix_DS_{0}.out'.format(outputPostfix), D, delimiter=',', fmt='%.4f')
+
             consensus_kval = len(np.unique(consensus_partition))
             results_per_run[met_name][dsname_kval]["consensus"]["K"] = consensus_kval
 
@@ -331,7 +337,7 @@ if __name__ == '__main__':
     #datasources = ["TwentyNewsgroupView", "BBCSportsView", "ReutersView", "WEBKBView"]
     #datasources = ["BBC_seg2", "BBC_seg3", "BBC_seg4", "CaltechN", "NusWide", "Handwritten", "Reuters5"]
     #datasources = ["BBCseg4","Reuters5"]#,"Handwritten","NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
-    datasources = ["Yahoo"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
+    datasources = ["NusWide"]#"Yahoo"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters5"]#,"Handwritten","NusWide"]
 
     computation_lst = list(product(*[k_values, methods, datasources]))
 
