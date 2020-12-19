@@ -14,6 +14,7 @@ h5py = "*"
 tabulate = "*"
 matplotlib = "*"
 ipython = "*"
+networkx = "*"
 
 [requires]
 python_version = "3.8"
