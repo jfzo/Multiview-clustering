@@ -61,6 +61,10 @@ class HDF5Adapter (DataViewGenerator):
             self.data_views[vw] = csr_matrix(coo_matrix((data, (rowindex, colindex)), shape=self.shape))
 
 
+class BBCseg2(HDF5Adapter):
+    def __init__(self, path='.', fname='bbc-seg2_coo.h5'):
+        super().__init__("BBC-seg2", path + os.sep + fname)
+
 class BBCseg4(HDF5Adapter):
     def __init__(self, path='.', fname='bbc-seg4_coo.h5'):
         super().__init__("BBC-seg4", path + os.sep + fname)
@@ -164,4 +168,4 @@ def createHDF5DatasetsCOO(inDir):
 
 if __name__ == '__main__':
     #createHDF5Datasets('/home/juan/Documentos/sparse-multiview-data')
-    createHDF5DatasetsCOO('/home/juan/Documentos/sparse-multiview-data')
+    createHDF5DatasetsCOO('/home/juan/Documentos/sparse-multiview-data/new')

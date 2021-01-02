@@ -213,10 +213,10 @@ class NCFwR(object):
             self.Pi[last_created_view][p_id] = c
 
         # build postfix with the date
-        #now = datetime.now()
-        #outputPostfix = "{0}".format(now.strftime("%b%d%Y.%H%M%S"))
-        #np.savetxt('labels_NCF_DS_{0}.out'.format(outputPostfix), self.Pi[last_created_view], delimiter=',', fmt='%d')
-        #np.savetxt('simmatrix_DS_{0}.out'.format(outputPostfix), D, delimiter=',', fmt='%.4f')
+        now = datetime.now()
+        outputPostfix = "{0}".format(now.strftime("%b%d%Y.%H%M%S"))
+        np.savetxt('labels_NCF_DS_{0}.out'.format(outputPostfix), self.Pi[last_created_view], delimiter=',', fmt='%d')
+        np.savetxt('simmatrix_DS_{0}.out'.format(outputPostfix), D, delimiter=',', fmt='%.4f')
 
         return self.Pi[last_created_view], D
 
