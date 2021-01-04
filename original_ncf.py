@@ -4,7 +4,7 @@ import numpy as np
 from logging_setup import logger
 from utils import *
 from datetime import datetime
-
+import os
 
 class NCFwR(object):
     def __init__(self, *args, **kwargs):
@@ -69,8 +69,9 @@ class NCFwR(object):
         ave_complexity = [np.mean([compute_solutions_complexity(self.Pi[j], rnd_p[i], K[j], kmax)[2] for i in range(self.N_rnd)]) for j in range(m)]
         # if ave_complexity[i] > ave_complexity[j] => view_i has more information thant view_j, thus it is ranked higher
         #logger.debug("Average Complexities under #rndcst={0}".format(self.N_rnd))
-        #logger.debug("{0}".format(ave_complexity) )
+
         self.complexity_rank = np.argsort(ave_complexity) # sorts ave complexities in ascending order (recall that the higher the farther from random)
+        logger.debug("Ranked views: {0}".format(self.complexity_rank))
         ######
         # Distance matrix computation
         #
@@ -212,11 +213,20 @@ class NCFwR(object):
         for (p_id, (c,_)) in  max_weight_cluster.items():
             self.Pi[last_created_view][p_id] = c
 
+        ######
         # build postfix with the date
+        try:
+            os.mkdir('stage1_results')
+        except OSError as error:
+            logger.warn('Directory stage1_results exists.')
         now = datetime.now()
         outputPostfix = "{0}".format(now.strftime("%b%d%Y.%H%M%S"))
-        np.savetxt('labels_NCF_DS_{0}.out'.format(outputPostfix), self.Pi[last_created_view], delimiter=',', fmt='%d')
-        np.savetxt('simmatrix_DS_{0}.out'.format(outputPostfix), D, delimiter=',', fmt='%.4f')
+        label_out = 'stage1_results/labels_NCF_DS_{0}.out'.format(outputPostfix)
+        inst_clu_sim_out = 'stage1_results/simmatrix_DS_{0}.out'.format(outputPostfix)
+
+        logger.info("Storing labels and instance-cluster similarity matrix...")
+        np.savetxt(label_out, self.Pi[last_created_view], delimiter=',', fmt='%d')
+        np.savetxt(inst_clu_sim_out, D, delimiter=',', fmt='%.4f')
 
         return self.Pi[last_created_view], D
 

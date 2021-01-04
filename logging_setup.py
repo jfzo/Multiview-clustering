@@ -5,7 +5,7 @@ logger = logging.getLogger('NCF clustering')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
 now = datetime.now()
-outputfile = "logging-output2/LOG_{0}.log".format(now.strftime("%b%d%Y.%H%M%S"))
+outputfile = "logging-output/LOG_{0}.log".format(now.strftime("%b%d%Y.%H%M%S"))
 fh = logging.FileHandler(outputfile, mode='w')
 fh.setLevel(logging.DEBUG)
 

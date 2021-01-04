@@ -65,6 +65,10 @@ class BBCseg2(HDF5Adapter):
     def __init__(self, path='.', fname='bbc-seg2_coo.h5'):
         super().__init__("BBC-seg2", path + os.sep + fname)
 
+class BBCseg3(HDF5Adapter):
+    def __init__(self, path='.', fname='bbc-seg3_coo.h5'):
+        super().__init__("BBC-seg3", path + os.sep + fname)
+
 class BBCseg4(HDF5Adapter):
     def __init__(self, path='.', fname='bbc-seg4_coo.h5'):
         super().__init__("BBC-seg4", path + os.sep + fname)
@@ -81,7 +85,7 @@ class NusWide(HDF5Adapter):
     def __init__(self, path='.', fname='nusWide_coo.h5'):
         super().__init__("Nus-Wide", path + os.sep + fname)
 
-class Reuters5(HDF5Adapter):
+class Reuters(HDF5Adapter):
     def __init__(self, path='.', fname='reuters_coo.h5'):
         super().__init__("Reuters-5", path + os.sep + fname)
 
