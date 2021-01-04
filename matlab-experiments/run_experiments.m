@@ -120,6 +120,82 @@ save('reuters_ensemble_results.mat', 'cspa','hgpa','mcla','trLbls');
 
 clear i cl viewsLbls k trLbls viewNames cspa hgpa mcla;
 %%
+clear
+clc
+addpath( genpath('./ClusterPack-V2.0'))
+trLbls = double(h5read('data/bbc-seg2_coo.h5', '/labels')');
+k = length(unique(trLbls)) * 2;
+viewNames = {'bbc2_v0','bbc2_v1'}
+viewsLbls = zeros(length(viewNames), length(trLbls));
+
+for i = 1:length(viewNames)
+    viewPath = sprintf('/views/%s/coo-format/',viewNames{i})
+    hw_rows = h5read('data/bbc-seg2_coo.h5', [viewPath 'rowindex']);
+    hw_cols = h5read('data/bbc-seg2_coo.h5', [viewPath 'colindex']);
+    hw_data = h5read('data/bbc-seg2_coo.h5', [viewPath 'data']);
+
+    hwsp = sparse(hw_rows+1, hw_cols+1, hw_data);    
+    x = full(hwsp);
+    cl_i = clkmeans(x, k, 'simcosi');
+    viewsLbls(i+1,:) = cl_i;
+    clear hw_rows hw_cols hw_data hwsp x cl_i viewPath;
+end
+cl = clusterensemble(viewsLbls, 10);
+disp(['Consensus clustering has a mutual info ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(1,:))) ' for CSPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(2,:))) ' for HGPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(3,:))) ' for MCLA ']);
+
+cspa = cl(1,:);
+hgpa = cl(2,:);
+mcla = cl(3,:);
+save('bbc2_ensemble_results.mat', 'cspa','hgpa','mcla','trLbls');
+
+% Consensus clustering has a mutual info 
+% of 0.45577 for CSPA 
+% of 0.35498 for HGPA 
+% of 0.40884 for MCLA 
+
+clear i cl viewsLbls k trLbls cspa hgpa mcla;
+%%
+clear
+clc
+addpath( genpath('./ClusterPack-V2.0'))
+trLbls = double(h5read('data/bbc-seg3_coo.h5', '/labels')');
+k = length(unique(trLbls)) * 2;
+viewNames = {'bbc3_v0','bbc3_v1','bbc3_v2'}
+viewsLbls = zeros(length(viewNames), length(trLbls));
+
+for i = 1:length(viewNames)
+    viewPath = sprintf('/views/%s/coo-format/',viewNames{i})
+    hw_rows = h5read('data/bbc-seg3_coo.h5', [viewPath 'rowindex']);
+    hw_cols = h5read('data/bbc-seg3_coo.h5', [viewPath 'colindex']);
+    hw_data = h5read('data/bbc-seg3_coo.h5', [viewPath 'data']);
+
+    hwsp = sparse(hw_rows+1, hw_cols+1, hw_data);    
+    x = full(hwsp);
+    cl_i = clkmeans(x, k, 'simcosi');
+    viewsLbls(i+1,:) = cl_i;
+    clear hw_rows hw_cols hw_data hwsp x cl_i viewPath;
+end
+cl = clusterensemble(viewsLbls, 10);
+disp(['Consensus clustering has a mutual info ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(1,:))) ' for CSPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(2,:))) ' for HGPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(3,:))) ' for MCLA ']);
+
+cspa = cl(1,:);
+hgpa = cl(2,:);
+mcla = cl(3,:);
+save('bbc3_ensemble_results.mat', 'cspa','hgpa','mcla','trLbls');
+
+% Consensus clustering has a mutual info 
+% of 0.45577 for CSPA 
+% of 0.35498 for HGPA 
+% of 0.40884 for MCLA 
+
+clear i cl viewsLbls k trLbls cspa hgpa mcla;
+%%
 trLbls = double(h5read('data/bbc-seg4_coo.h5', '/labels')');
 k = length(unique(trLbls)) * 2;
 viewNames = {'bbc4_v0','bbc4_v1','bbc4_v2','bbc4_v3'}
@@ -277,8 +353,32 @@ negMMLabels = NegMM(PI, trLbls, 'Yahoo');
 save('yahoo_negMM_results.mat','negMMLabels','trLbls');
 
 clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels; 
+
 %%
 clear
+clc
+addpath( genpath('./clustering-ensemble-zhongcaiming'))
+
+trLbls = double(h5read('data/3sources_coo.h5', '/labels'));
+viewNames = {'bbc','reuters','guardian'}
+
+N = size(trLbls, 1);
+M = length(viewNames);
+PI = zeros(N, M);
+for i = 1:length(viewNames)
+    viewLabelPath = sprintf('/views/%s/labels',viewNames{i})
+    lbls_i = double(h5read('data/3sources_coo.h5', viewLabelPath));
+    PI(:, i) = lbls_i;
+end
+
+negMMLabels = NegMM(PI, trLbls, '3Sources');
+save('3sources_negMM_results.mat','negMMLabels','trLbls');
+
+clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels;
+%%
+clear
+clc
+addpath( genpath('./clustering-ensemble-zhongcaiming'))
 trLbls = double(h5read('data/bbc-seg2_coo.h5', '/labels'));
 
 viewNames = {'bbc2_v0','bbc2_v1'}
@@ -294,6 +394,27 @@ end
 
 negMMLabels = NegMM(PI, trLbls, 'BBC-2');
 save('bbc2_negMM_results.mat','negMMLabels','trLbls');
+
+clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels;
+%%
+clear
+clc
+addpath( genpath('./clustering-ensemble-zhongcaiming'))
+trLbls = double(h5read('data/bbc-seg3_coo.h5', '/labels'));
+
+viewNames = {'bbc3_v0','bbc3_v1','bbc3_v2'}
+
+N = size(trLbls, 1);
+M = length(viewNames);
+PI = zeros(N, M);
+for i = 1:length(viewNames)
+    viewLabelPath = sprintf('/views/%s/labels',viewNames{i})
+    lbls_i = double(h5read('data/bbc-seg3_coo.h5', viewLabelPath));
+    PI(:, i) = lbls_i;
+end
+
+negMMLabels = NegMM(PI, trLbls, 'BBC-3');
+save('bbc3_negMM_results.mat','negMMLabels','trLbls');
 
 clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels;
 %%
@@ -369,6 +490,7 @@ negMMLabels = NegMM(PI, trLbls, 'NusWide');
 save('nusWide_negMM_results.mat','negMMLabels','trLbls');
 
 clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels;
+
 %% Too slow!
 trLbls = double(h5read('data/reuters_coo.h5', '/labels'));
 
@@ -387,3 +509,4 @@ negMMLabels = NegMM(PI, trLbls, 'Reuters');
 save('reuters_negMM_results.mat','negMMLabels','trLbls');
 
 clear i viewsLbls trLbls viewNames PI N M viewLabelPath lbls_i negMMLabels;
+

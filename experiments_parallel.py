@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     set_start_method("spawn")
 
-    datapath="C:/Users/juanz/Documents/multiview-data"
+    datapath="./data"
     #datapath = "/home/juan/Documentos/sparse-multiview-data"
     initial_seed=111
     nruns=10
