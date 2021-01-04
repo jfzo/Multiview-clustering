@@ -61,6 +61,12 @@ class HDF5Adapter (DataViewGenerator):
             self.data_views[vw] = csr_matrix(coo_matrix((data, (rowindex, colindex)), shape=self.shape))
 
 
+
+class ThreeSources(HDF5Adapter):
+    def __init__(self, path='.', fname='3sources_coo.h5'):
+        super().__init__("3Sources", path + os.sep + fname)
+
+
 class BBCseg2(HDF5Adapter):
     def __init__(self, path='.', fname='bbc-seg2_coo.h5'):
         super().__init__("BBC-seg2", path + os.sep + fname)
@@ -137,7 +143,7 @@ def createHDF5DatasetsCOO(inDir):
     for dirItem in dirContent:
         fullPathFsItem = inDir + "/" + dirItem # specific dataset folder
         if os.path.isdir(fullPathFsItem) and not dirItem.startswith("."):
-            print(dirItem)
+            print("Entering directory {0}".format(dirItem))
             # [within the folder] several files : {AS_FOLDER}.labels(1) {prefix}[.dat | .clustering.XX](* for each view)
             dsDirContent = os.listdir(fullPathFsItem)
             outH5Name = '{0}/{1}_coo.h5'.format(inDir,dirItem)
@@ -155,6 +161,7 @@ def createHDF5DatasetsCOO(inDir):
                 k = datFn.replace(".dat","")
                 vwLabels = np.loadtxt('{0}/{1}'.format(fullPathFsItem,clustResFn), dtype=np.int8) #clustering result associated to the .dat file
                 vwData = sparseMatFromCluto('{0}/{1}'.format(fullPathFsItem, datFn), sparseFmt = True) #csr format
+                #vwData = csr_matrix(np.loadtxt('{0}/{1}'.format(fullPathFsItem, datFn), delimiter=',') ) # csr format
                 hdfDS['views'].create_group(k)
                 #hdfDS['views'][k].create_group('labels')
                 #hdfDS['views'][k].create_group('data')
@@ -172,4 +179,5 @@ def createHDF5DatasetsCOO(inDir):
 
 if __name__ == '__main__':
     #createHDF5Datasets('/home/juan/Documentos/sparse-multiview-data')
-    createHDF5DatasetsCOO('/home/juan/Documentos/sparse-multiview-data/new')
+    #createHDF5DatasetsCOO('/home/juan/Documentos/sparse-multiview-data/new')
+    createHDF5DatasetsCOO('C:/Users/juanz/PycharmProjects/Multiview-clustering/matlab-experiments/data')

@@ -1,5 +1,33 @@
 addpath( genpath('./ClusterPack-V2.0'))
+%%
+trLbls = double(h5read('data/3sources_coo.h5', '/labels')');
+k = length(unique(trLbls)) * 2;
+viewNames = {'bbc','reuters','guardian'}
+viewsLbls = zeros(length(viewNames), length(trLbls));
 
+for i = 1:length(viewNames)
+    viewPath = sprintf('/views/%s/coo-format/',viewNames{i})
+    hw_rows = h5read('data/3sources_coo.h5', [viewPath 'rowindex']);
+    hw_cols = h5read('data/3sources_coo.h5', [viewPath 'colindex']);
+    hw_data = h5read('data/3sources_coo.h5', [viewPath 'data']);
+
+    hwsp = sparse(hw_rows+1, hw_cols+1, hw_data);    
+    x = full(hwsp);
+    cl_i = clkmeans(x, k, 'simcosi');
+    viewsLbls(i+1,:) = cl_i;
+    clear hw_rows hw_cols hw_data hwsp x cl_i viewPath;
+end
+cl = clusterensemble(viewsLbls, 6);
+disp(['Consensus clustering has a mutual info ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(1,:))) ' for CSPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(2,:))) ' for HGPA ']);
+disp(['of ' num2str(evalmutual(trLbls ,cl(3,:))) ' for MCLA ']);
+
+cspa = cl(1,:);
+hgpa = cl(2,:);
+mcla = cl(3,:);
+save('3sources_ensemble_results.mat', 'cspa','hgpa','mcla','trLbls');
+%%
 load('data/yahoo-all/yahoo-all.mat')
 trLbls = importTrueLabels('data/yahoo-all/docs.int.labels')';
 
