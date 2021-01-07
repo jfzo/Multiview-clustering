@@ -46,7 +46,7 @@ def cluster_entropy(r, labels_pred, labels_true):
     """
     L_true = np.unique(labels_true)
     q = len(L_true)
-    # get items with label r
+    # get items with label rloadmat
     r_items = np.where(labels_pred == r)[0]
     n_r = len(r_items)
 

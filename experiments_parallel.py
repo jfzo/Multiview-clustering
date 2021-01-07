@@ -186,7 +186,7 @@ if __name__ == '__main__':
 
     set_start_method("spawn")
 
-    datapath="C:/Users/juan/Documents/multiview-data"
+    datapath="./data"
     #datapath = "/home/juan/Documentos/sparse-multiview-data"
     initial_seed=111
     nruns=10
@@ -198,7 +198,7 @@ if __name__ == '__main__':
                #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
     methods = ["NCFwR:number_random_partitions=80"]
 
-    datasources = ["BBCseg3"]#BBCseg2,"BBCseg3"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters"]#,"Handwritten","NusWide"]
+    datasources = ["ThreeSources"]#BBCseg2,"BBCseg3"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters"]#,"Handwritten","NusWide"]
 
     # each run will receive the following parameter configuration: {param0:k-value , param1:method-indicator, param2:dataset-name}
     # see @HDF5Datasets for the available dataset handlers.
