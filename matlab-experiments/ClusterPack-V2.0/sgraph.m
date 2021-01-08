@@ -25,8 +25,8 @@ else
 end;
 fclose(fid);
 
-%system(scriptfile); % fix (jz)
-system(sprintf("bash ./%s",scriptfile))
+system(scriptfile); % fix (jz)
+%system(sprintf("bash ./%s",scriptfile))
 
 delete(scriptfile);
 

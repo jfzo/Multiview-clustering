@@ -68,16 +68,31 @@ class ThreeSources(HDF5Adapter):
 
 
 class BBCseg2(HDF5Adapter):
-    def __init__(self, path='.', fname='bbc-seg2_coo.h5'):
+    def __init__(self, path='.', fname='bbc22_coo.hdf5'):
         super().__init__("BBC-seg2", path + os.sep + fname)
 
 class BBCseg3(HDF5Adapter):
-    def __init__(self, path='.', fname='bbc-seg3_coo.h5'):
+    def __init__(self, path='.', fname='bbc33_coo.hdf5'):
         super().__init__("BBC-seg3", path + os.sep + fname)
 
 class BBCseg4(HDF5Adapter):
-    def __init__(self, path='.', fname='bbc-seg4_coo.h5'):
+    def __init__(self, path='.', fname='bbc44_coo.hdf5'):
         super().__init__("BBC-seg4", path + os.sep + fname)
+
+class BBCSPORTSseg2(HDF5Adapter):
+    def __init__(self, path='.', fname='bbcsp22_coo.hdf5'):
+        super().__init__("BBCSPORTS-seg2", path + os.sep + fname)
+
+class BBCSPORTSseg3(HDF5Adapter):
+    def __init__(self, path='.', fname='bbcsp33_coo.hdf5'):
+        super().__init__("BBCSPORTS-seg3", path + os.sep + fname)
+
+class BBCSPORTSseg4(HDF5Adapter):
+    def __init__(self, path='.', fname='bbcsp44_coo.hdf5'):
+        super().__init__("BBCSPORTS-seg4", path + os.sep + fname)
+
+
+
 
 class Caltech20(HDF5Adapter):
     def __init__(self, path='.', fname='caltech-20_coo.h5'):

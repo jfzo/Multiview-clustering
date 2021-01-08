@@ -198,7 +198,10 @@ if __name__ == '__main__':
                #"NCFwR:number_random_partitions=80", "NCFwR:number_random_partitions=100"]
     methods = ["NCFwR:number_random_partitions=80"]
 
-    datasources = ["ThreeSources"]#BBCseg2,"BBCseg3"]#"Handwritten"]#,"NusWide"]#,"BBCseg4","Caltech20","Reuters"]#,"Handwritten","NusWide"]
+    # "BBCSPORTSseg2", "BBCSPORTSseg3", "BBCSPORTSseg4",
+    # "BBCseg2", "BBCseg3", "BBCseg4",
+    # "ThreeSources","Handwritten","NusWide","Caltech20","Reuters","Handwritten","NusWide"]
+    datasources = ["BBCseg4"]
 
     # each run will receive the following parameter configuration: {param0:k-value , param1:method-indicator, param2:dataset-name}
     # see @HDF5Datasets for the available dataset handlers.

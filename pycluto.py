@@ -7,7 +7,7 @@ import time
 import logging
 
 def sparse_mat_to_cluto_graph(data, outputfile, labels=None):
-    sp_data = csc_matrix(data)
+    sp_data = csr_matrix(data)
     N, d = sp_data.shape
     out = open(outputfile, "w")
     out.write("%d %d %d\n" % (N, d, sp_data.nnz))
@@ -16,7 +16,7 @@ def sparse_mat_to_cluto_graph(data, outputfile, labels=None):
         for j in non_zero_cols:
             feat = j + 1  # cluto's format starts at 1
             value = sp_data[i, j]
-            out.write("%d %0.4f " % (feat, value))
+            out.write("%d %0.2f " % (feat, value))
         out.write("\n")
     out.close()
 
@@ -56,18 +56,21 @@ def cluto_scluster(simmat, nclusters, CLUTOV_CMD="/root/cluto-2.1.2/Linux-x86_64
     return assignments
 
 
-def cluto_vcluster(vMat, nclusters, CLUTOV_CMD="/root/cluto-2.1.2/Linux-x86_64/vcluster"):
+def cluto_vcluster(vMat, nclusters, CLUTOV_CMD="/root/cluto-2.1.2/Linux-x86_64/vcluster", tmp_dir='/tmp', cluto_options=None, delete_temp=True):
 
     prefix = calendar.timegm(time.gmtime())
-    tempinput = "%s/%s.dat" % ("/tmp", prefix)
-    # sparse_mat_to_cluto_graph(simmat, tempinput)
-    np.savetxt(tempinput, vMat, fmt='%.1f', delimiter=' ', header="%d %d" % (vMat.shape[0], vMat.shape[1]), comments='')
+    tempinput = "%s/%s.dat" % (tmp_dir, prefix)
+    sparse_mat_to_cluto_graph(vMat, tempinput)
+    #np.savetxt(tempinput, vMat, fmt='%.1f', delimiter=' ', header="%d %d" % (vMat.shape[0], vMat.shape[1]), comments='')
 
     # scluster -clmethod=graph -crfun=g1 -cstype=best -nnbrs=40 -grmodel=sd -nooutput -rclassfile=archivo_etiquetas archivo_grafo cantidad_grupos
     # command_order="{0} -clustfile={1}.k{2} -rclassfile={3} {1} {2}".format(CLUTOV_CMD, vectors_file, nclusters, LABEL_PATH)
-    command_order = "{0} -clustfile={1}.k{2} -colmodel=none -sim=dist " \
-                    "-clmethod=graph -crfun=g1 -cstype=best -nnbrs=40 " \
-                    "-grmodel=sd  {1} {2}".format(CLUTOV_CMD, tempinput, nclusters)
+    if cluto_options is None:
+        command_order = "{0} -clustfile={1}.k{2} -colmodel=none -sim=cos " \
+                        "-clmethod=rb -crfun=g1 -cstype=best -nnbrs=40 " \
+                        "-grmodel=sd  {1} {2}".format(CLUTOV_CMD, tempinput, nclusters)
+    else:
+        command_order = "{0}  -clustfile={2}.k{3}  {1} {2} {3}".format(CLUTOV_CMD, cluto_options, tempinput, nclusters)
 
 
     print(command_order)
@@ -78,11 +81,12 @@ def cluto_vcluster(vMat, nclusters, CLUTOV_CMD="/root/cluto-2.1.2/Linux-x86_64/v
     assign_file = "{0}.k{1}".format(tempinput, nclusters)
     assignments = np.array([int(x.strip()) for x in open(assign_file)])
 
-    # Deleting the temporal files created.
-    os.remove(tempinput)
-    # print("temporal file",tempinput,"deleted")
-    os.remove("%s.k%d" % (tempinput, nclusters))
-    # print("temporal file","%s.k%d"%(tempinput, nclusters),"deleted")
+    if delete_temp:
+        # Deleting the temporal files created.
+        os.remove(tempinput)
+        # print("temporal file",tempinput,"deleted")
+        os.remove("%s.k%d" % (tempinput, nclusters))
+        # print("temporal file","%s.k%d"%(tempinput, nclusters),"deleted")
 
     return assignments
 

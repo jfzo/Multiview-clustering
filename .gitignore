@@ -3,3 +3,10 @@
 .RData
 .Ruserdata
 /.idea/
+*.log
+*.out
+*.json
+*.npz
+*.dat
+*.npy
+*.labels
