@@ -10,7 +10,8 @@ $ conda env create -f environment.yml
 
 ## Running the experiments
 
-Be aware of adding the data directory parameter in [`line 716`](https://github.com/jfzo/Multiview-clustering/blob/bd4ff54f4e7642b6ee62d4d3a3ca3a60a129e804/NCF_clustering_fusion.py#L716) of file NCF_clustering_fusion.py.
+Be aware of adding the data directory parameter in [`line 716`](https://github.com/jfzo/Multiview-clustering/blob/72f9a28c8c80ad4c40eb8792e3910b7476d04bce/experiments_parallel.py#L187) of file experiments_parallel.py. See also the other experimental settings in the same fiel.
+
 ```
 $ python.exe experiments_parallel.py
 ```
