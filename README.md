@@ -10,7 +10,7 @@ $ conda env create -f environment.yml
 
 ## Running the experiments
 
-Be aware of adding the data directory parameter in [`line 187`](https://github.com/jfzo/Multiview-clustering/blob/72f9a28c8c80ad4c40eb8792e3910b7476d04bce/experiments_parallel.py#L187) of file experiments_parallel.py. See also the other experimental settings in the same fiel.
+Be aware of adding the data directory parameter in [`line 187`](https://github.com/jfzo/Multiview-clustering/blob/72f9a28c8c80ad4c40eb8792e3910b7476d04bce/experiments_parallel.py#L187) of file experiments_parallel.py. See also the other experimental settings in the same file.
 
 Then execute:
 
